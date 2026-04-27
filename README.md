@@ -38,6 +38,13 @@ MemGuard watches the **dynamics of the train/eval gap** — its slope and accele
 
 Validated on: `zephyr-7b-beta`, `mistral-7b-anthropic`, `argilla/notus-7b-v1`, `zephyr-7b-alpha`
 
+## Example: strong overfitting regime
+
+![Strong overfitting example](./assets/strong_overfit_example.png)
+
+**Synthetic strong overfitting example.**  
+Training loss keeps decreasing while evaluation loss reverses upward.  
+The generalization gap opens rapidly after the turning point, which is exactly the regime MemGuard is designed to detect early.
 ---
 
 ## Install
