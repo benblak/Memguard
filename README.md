@@ -196,6 +196,23 @@ The broader corpus includes core manuscripts, companion documents, and public re
 
 Main Zenodo entry:
 - https://doi.org/10.5281/zenodo.19669211
+
+- ## INSACERMO core law |K-G|
+
+MemGuard implements the applied side. The theoretical core is the frozen criticality law:
+
+$$|K-G| = 2.86 \frac{|\tau_c - 1.317|^{0.92}}{1 + 0.94 |\tau_c - 1.317|^{1.14}}$$
+
+Validated on public MIT-BIH NSR record 16265:
+
+- $\tau_c = 3.09$s, $K=0.85$, $G=2.15$
+- $|K-G| = 1.30$, prediction $1.73$, $r=0.75$ → **PASS**
+
+![ECG validation](https://raw.githubusercontent.com/benblak/Memguard/main/docs/figure_16265.png)
+
+Reproducible notebook: [doi.org/10.5281/zenodo.19823276](https://doi.org/10.5281/zenodo.19823276)
+
+INSACERMO is a state thermometer, a fragility sensor, and sometimes an early-warning signal — across heart, earthquake, climate, and LLM training.
 ---
 
 ## License
