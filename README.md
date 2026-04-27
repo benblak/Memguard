@@ -1,4 +1,4 @@
-le# MemGuard
+
 
 **Early overfitting detection for LLM fine-tuning from logs only.**  
 MemGuard detects the post-optimal degradation regime before standard visible metrics make it obvious.
