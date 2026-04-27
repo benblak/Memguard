@@ -39,7 +39,7 @@ MemGuard watches the **dynamics of the train/eval gap** — its slope and accele
 Validated on: `zephyr-7b-beta`, `mistral-7b-anthropic`, `argilla/notus-7b-v1`, `zephyr-7b-alpha`
 
 ## Example: strong overfitting regime
-.![Strong overfitting example](./téléchargement-2026-04-27T233400.308.png)u
+.![Strong overfitting example](./téléchargement-2026-04-27T233400.308.png)
 
 ![Strong overfitting example](./assets/strong_overfit_example.png)
 
