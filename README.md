@@ -1,5 +1,13 @@
 # MemGuard
 
+**Early overfitting detection for LLM fine-tuning from logs only.**  
+MemGuard detects the post-optimal degradation regime before standard visible metrics make it obvious.
+
+- Hugging Face compatible
+- No access to internal activations
+- No model modification required
+- Up to **56.4% compute saved**
+
 **Stop fine-tuning at the right moment. Save 56% of compute.**
 
 [![PyPI](https://img.shields.io/pypi/v/memguard)](https://pypi.org/project/memguard/)
@@ -8,6 +16,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18675678.svg)](https://doi.org/10.5281/zenodo.18675678)
 
 MemGuard detects the post-optimal degradation regime in LLM fine-tuning — before your metrics show it — and stops training automatically.
+
+
 
 ---
 
