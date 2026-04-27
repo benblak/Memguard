@@ -224,5 +224,5 @@ INSACERMO is a state thermometer, a fragility sensor, and sometimes an early-war
 ---
 
 ## License
-
+[![INSACERMO](https://img.shields.io/badge/INSACERMO-validated-blue)](https://doi.org/10.5281/zenodo.19823276)
 MIT — see [LICENSE](LICENSE)
