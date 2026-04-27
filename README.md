@@ -1,4 +1,4 @@
-# MemGuard
+le# MemGuard
 
 **Early overfitting detection for LLM fine-tuning from logs only.**  
 MemGuard detects the post-optimal degradation regime before standard visible metrics make it obvious.
@@ -188,10 +188,14 @@ Dict of pre-computed K values for common fine-tuning datasets.
 
 ## Related work
 
-This package implements algorithms derived from the INSACERMO framework:
-- [Zenodo preprint](https://doi.org/10.5281/zenodo.18675678)
-- The three empirical laws are validated on Pythia model family (EleutherAI) and real runs from HuggingFace Hub
+## Related research
 
+MemGuard is one applied branch of the broader INSACERMO research program on memory, viability, regime transitions, and information-based dynamics.
+
+The broader corpus includes core manuscripts, companion documents, and public reproducibility materials.
+
+Main Zenodo entry:
+- https://doi.org/10.5281/zenodo.19669211
 ---
 
 ## License
