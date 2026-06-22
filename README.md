@@ -1,228 +1,169 @@
+# INSACERMO MemGuard 0.3.0-rc1
 
+**Noise-aware, conservative detection of persistent post-best degradation in fine-tuning logs.**
 
-**Early overfitting detection for LLM fine-tuning from logs only.**  
-MemGuard detects the post-optimal degradation regime before standard visible metrics make it obvious.
+> **Release candidate.** Use in `dry_run` / shadow mode first. This version is not presented as a generally validated or production-ready automatic stopping system.
 
-- Hugging Face compatible
-- No access to internal activations
-- No model modification required
-- Up to **56.4% compute saved**
+## Important correction notice
 
-**Stop fine-tuning at the right moment. Save 56% of compute.**
+Earlier versions of this repository contained three public-facing problems:
 
-[![PyPI](https://img.shields.io/pypi/v/memguard)](https://pypi.org/project/memguard/)
-[![Python](https://img.shields.io/pypi/pyversions/memguard)](https://pypi.org/project/memguard/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18675678.svg)](https://doi.org/10.5281/zenodo.18675678)
+1. `pip install memguard` pointed to an unrelated PyPI project;
+2. the README documented functions and CLI commands that were not implemented;
+3. the original stop logic was too sensitive to asymmetric convergence and noisy validation plateaus.
 
-MemGuard detects the post-optimal degradation regime in LLM fine-tuning — before your metrics show it — and stops training automatically.
+These points are corrected in the 0.3.0-rc1 source and documentation. Older copies should **not** be used for automatic stopping. See [`CORRECTION_NOTICE.md`](CORRECTION_NOTICE.md) and [`CHANGELOG.md`](CHANGELOG.md).
 
+## Installation
 
-
----
-
-## The problem
-
-Standard early stopping watches `eval_loss`. It reacts *after* the problem is visible.
-
-MemGuard watches the **dynamics of the train/eval gap** — its slope and acceleration. It detects the transition from learning to memorisation before it appears in your metrics.
-
-## Results on real HuggingFace runs
-
-| Metric | Value |
-|--------|-------|
-| Compute saved (mean) | **56.4% ± 5.6%** |
-| Regret MemGuard | **0.037** |
-| Regret Standard | 0.077 |
-| Improvement | **2.1× less regret** |
-
-Validated on: `zephyr-7b-beta`, `mistral-7b-anthropic`, `argilla/notus-7b-v1`, `zephyr-7b-alpha`
-
-## Example: strong overfitting regime
-.![Strong overfitting example](./téléchargement-2026-04-27T233400.308.png)
-
-![Strong overfitting example](./assets/strong_overfit_example.png)
-
-**Synthetic strong overfitting example.**  
-Training loss keeps decreasing while evaluation loss reverses upward.  
-The generalization gap opens rapidly after the turning point, which is exactly the regime MemGuard is designed to detect early.
----
-
-## Install
+The PyPI distribution named `memguard` belongs to an unrelated project. Do **not** use:
 
 ```bash
 pip install memguard
 ```
 
-For HuggingFace Trainer integration:
+This repository uses:
+
+- distribution name: `insacermo-memguard`
+- import name: `insacermo_memguard`
+
+Install from this repository:
+
 ```bash
-pip install "memguard[hf]"
+pip install "git+https://github.com/benblak/Memguard.git"
 ```
 
----
+For Hugging Face integration:
 
-## Quick start
-
-### Analyse an existing run
-```python
-import memguard
-
-result = memguard.analyze_file("trainer_state.json")
-print(result["recommended_action"])   # EARLY_STOP | MONITOR_CLOSELY | HEALTHY
-print(result["compute_saved_pct"])    # 58.6
-print(result["risk_reason"])          # STOP_PATIENCE_TRIGGER
-```
-
-### HuggingFace Trainer (live)
-```python
-from memguard import MemGuardCallback
-
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_dataset,
-    eval_dataset=eval_dataset,
-    callbacks=[MemGuardCallback(verbose=True)]
-)
-trainer.train()
-# MemGuard stops automatically when degradation is detected
-```
-
-### Predict optimal stopping point before training
-```python
-from memguard import predict_tc, measure_K, KNOWN_K
-
-# Use cached complexity for known datasets
-K = KNOWN_K["no_robots"]       # 0.787
-tc = predict_tc(
-    n_params=7e9,
-    K=K,
-    lr=2e-5,
-    n_data=50_000,
-    tokens_per_step=8192
-)
-print(f"Predicted optimal step: {tc:,.0f}")
-```
-
-### CLI
 ```bash
-# Analyse a trainer_state.json
-memguard analyze trainer_state.json
-
-# Measure dataset complexity
-memguard k HuggingFaceH4/no_robots --col prompt
-
-# Predict optimal stopping point
-memguard predict --n-params 7e9 --k 0.787 --lr 2e-5
+pip install "insacermo-memguard[hf] @ git+https://github.com/benblak/Memguard.git"
 ```
 
----
+## What changed in 0.3.0-rc1
 
-## Three empirical laws
+Version 0.2 fixed a false positive caused by a widening train/eval gap while validation loss was still improving. Further stress testing then found a deeper issue: on a noisy plateau, the raw historical minimum can be an accidental low point, and later return toward the mean can look like degradation.
 
-MemGuard is derived from three empirical laws validated on Pythia 70M → 12B and real HuggingFace runs:
+Version 0.3.0-rc1 changes the stop rule itself. `EARLY_STOP` now requires all of the following:
 
-**Law 1 — tc ~ N·log N** (r = 1.000, p < 0.001, n=8)
-The optimal stopping step is proportional to model size times its logarithm.
+1. a prior widening-gap warning;
+2. a robust post-best rise measured on a trailing rolling median;
+3. degradation larger than both the configured minimum and three times an estimated validation-noise scale;
+4. a positive recent validation trend with a sufficiently large noise-normalized slope score;
+5. a positive shift between adjacent validation windows;
+6. persistence over three consecutive candidate windows.
 
-**Law 2 — drift ~ log(overshoot)** (r = 0.979, bootstrap CI [0.891, 0.999], n=7)
-Post-optimal degradation is predictable from the overshoot magnitude.
+The train/eval gap remains a supporting signal only. A noisy plateau is reported as `MONITOR / NOISE_COMPATIBLE_PLATEAU`, not automatically as `EARLY_STOP`.
 
-**Law 3 — K(D) predicts tc** (r = -0.622, p = 0.041, n=11)
-Dataset algorithmic complexity predicts when overfitting begins.
+## Recalculated historical four-run benchmark
 
----
+The original public README reported **56.4% ± 5.6%** compute saved. That number was a conditional mean from an older, more aggressive detector and is retired for the current version.
 
-## Known dataset complexity cache
+The four historical Hugging Face runs were recalculated with **MemGuard 0.3.0-rc1**, frozen thresholds, and no retuning:
+
+| Run | v0.3 decision | Compute saved |
+|---|---:|---:|
+| `HuggingFaceH4/zephyr-7b-beta` | `EARLY_STOP` | 24.28% |
+| `HuggingFaceH4/mistral-7b-anthropic` | `EARLY_STOP` | 29.40% |
+| `argilla/notus-7b-v1` | `EARLY_STOP` | 10.00% |
+| `HuggingFaceH4/zephyr-7b-alpha` | `HEALTHY` | 0.00% |
+
+Summary:
+
+- stop coverage: **3/4 runs (75%)**;
+- mean compute saved among stopped runs: **21.23%**;
+- median compute saved among stopped runs: **24.28%**;
+- mean compute saved across all four runs, counting the healthy run as 0%: **15.92%**;
+- change versus the former 56.4% conditional claim: **−35.17 percentage points**.
+
+These figures describe this small named benchmark only. They are not a production guarantee or an enterprise-wide savings estimate.
+
+## Safe quick start
 
 ```python
-from memguard import KNOWN_K
+import insacermo_memguard as memguard
 
-# Pre-computed K values (zlib compression ratio)
-print(KNOWN_K)
-# {
-#   "pile":         0.492,
-#   "hh-rlhf":      0.621,
-#   "UltraFeedback": 0.686,
-#   "alpaca":       0.681,
-#   "OpenHermes":   0.703,
-#   "no_robots":    0.787,
-#   "gsm8k":        0.821,
-#   "flan-mini":    0.996,
-# }
+report = memguard.analyze_file("trainer_state.json")
+print(report["recommended_action"])
+print(report["risk_reason"])
 ```
 
----
+CSV input must contain flexible equivalents of:
 
-## API reference
-
-### `memguard.analyze_file(path)`
-Analyse a `trainer_state.json` or CSV log file.
-
-Returns a dict with:
-- `recommended_action`: `EARLY_STOP` | `MONITOR_CLOSELY` | `MONITOR` | `HEALTHY` | `INSUFFICIENT_DATA`
-- `risk_reason`: machine-readable reason string
-- `compute_saved_pct`: estimated compute saved if stopped now (float or None)
-- `stop_t`, `t_best`, `final_val`, `final_gap`, `gap_acceleration_index`, ...
-
-### `memguard.MemGuardCallback`
-HuggingFace `TrainerCallback` that stops training automatically.
-
-### `memguard.predict_tc(n_params, K, lr, n_data, tokens_per_step)`
-Predict the optimal stopping step before training.
-
-### `memguard.measure_K(dataset_name, column)`
-Measure the algorithmic complexity K of a HuggingFace dataset column.
-
-### `memguard.KNOWN_K`
-Dict of pre-computed K values for common fine-tuning datasets.
-
----
-
-## Citation
-
-```bibtex
-@misc{lenoir2025memguard,
-  author    = {Lenoir, Benjamin},
-  title     = {MemGuard: Empirical Laws of Post-Optimal Degradation in LLM Fine-Tuning},
-  year      = {2025},
-  publisher = {Zenodo},
-  doi       = {10.5281/zenodo.18675678},
-  url       = {https://doi.org/10.5281/zenodo.18675678}
-}
+```text
+step, train_loss, eval_loss
 ```
 
----
+## Hugging Face callback
 
-## Related work
+Safe default: detection only, no automatic stop.
 
-## Related research
+```python
+from insacermo_memguard import MemGuardCallback
 
-MemGuard is one applied branch of the broader INSACERMO research program on memory, viability, regime transitions, and information-based dynamics.
+callback = MemGuardCallback(dry_run=True, verbose=True)
+```
 
-The broader corpus includes core manuscripts, companion documents, and public reproducibility materials.
+Automatic stopping must be enabled explicitly only after validation on the target workload:
 
-Main Zenodo entry:
-- https://doi.org/10.5281/zenodo.19669211
+```python
+callback = MemGuardCallback(dry_run=False, verbose=True)
+```
 
-- ## INSACERMO core law |K-G|
+## Interpretation
 
-MemGuard implements the applied side. The theoretical core is the frozen criticality law:
+- `HEALTHY`: validation is still improving or no confirmed degradation exists.
+- `MONITOR`: dynamics changed, or a noisy plateau is present, but stop evidence is absent.
+- `MONITOR_CLOSELY`: the gap widened after the best region, but noise-aware confirmation is incomplete.
+- `EARLY_STOP`: repeated noise-aware post-best degradation was confirmed.
+- `INSUFFICIENT_DATA`: too few aligned evaluation points.
 
-$$|K-G| = 2.86 \frac{|\tau_c - 1.317|^{0.92}}{1 + 0.94 |\tau_c - 1.317|^{1.14}}$$
+## Stress-regression suite
 
-Validated on public MIT-BIH NSR record 16265:
+The suite includes:
 
-- $\tau_c = 3.09$s, $K=0.85$, $G=2.15$
-- $|K-G| = 1.30$, prediction $1.73$, $r=0.75$ → **PASS**
+- healthy asymmetric convergence with a widening gap;
+- strong and moderate overfitting;
+- purely noisy validation plateau;
+- 100-seed noisy-plateau regression guard;
+- structurally large but stable train/eval gap;
+- one isolated late validation spike;
+- Hugging Face logs where eval is more frequent than train (`merge_asof`);
+- chronological invariant: `early_warn_t <= stop_t`.
 
-![ECG validation](https://raw.githubusercontent.com/benblak/Memguard/main/docs/figure_16265.png)
+Local result for this release candidate:
 
-Reproducible notebook: [doi.org/10.5281/zenodo.19823276](https://doi.org/10.5281/zenodo.19823276)
+```text
+11 tests passed
+```
 
-INSACERMO is a state thermometer, a fragility sensor, and sometimes an early-warning signal — across heart, earthquake, climate, and LLM training.
----
+An additional synthetic stress sweep over 1,000 fixed noisy-plateau seeds produced 2 false stops for that one chosen generator. This is a regression diagnostic, not a general false-positive-rate estimate.
+
+## Current public API
+
+```python
+load(path)
+analyze(df, cfg=None, total_steps_scheduled=None)
+analyze_file(path, total_steps_scheduled=None, cfg=None)
+MemGuardCallback(...)
+analyze_repo(repo_id)
+run_audit(...)
+summarize_audit(df)
+CFG
+```
+
+The previously documented `predict_tc`, `measure_K`, `KNOWN_K`, `memguard k` and `memguard predict` are not part of this package because they are not implemented here.
+
+## Tests
+
+```bash
+python -m pip install -e ".[dev]"
+pytest
+```
+
+## Scope
+
+MemGuard is an experimental log-only guard. It does not claim universal overfitting detection. Use it first in dry-run or shadow mode on the target workload, compare it with standard early stopping, and retain the best checkpoint.
 
 ## License
-[![INSACERMO](https://img.shields.io/badge/INSACERMO-validated-blue)](https://doi.org/10.5281/zenodo.19823276)
-MIT — see [LICENSE](LICENSE)
+
+MIT. Benjamin Lenoir / INSACERMO.
