@@ -14,15 +14,13 @@ jobs:
         run: |
           cd lean_ci
           cat src_*.b64 | base64 -d | gzip -d > InsacermoFlat.lean
-      - name: Install Lean and mathlib cache
-        uses: leanprover/lean-action@v1
-        with:
-          auto-config: false
-          use-github-cache: false
-          use-mathlib-cache: true
-          lake-package-directory: lean_ci
-      - name: Build flattened INSACERMO core
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Resolve mathlib and compile INSACERMO
         working-directory: lean_ci
         run: |
           lake update
+          lake exe cache get
           lake env lean InsacermoFlat.lean
