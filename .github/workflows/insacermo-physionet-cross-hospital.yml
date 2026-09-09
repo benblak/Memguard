@@ -1,0 +1,77 @@
+name: INSACERMO PhysioNet Cross-Hospital
+
+on:
+  push:
+    branches:
+      - insacermo-physionet-run-20260909
+    paths:
+      - 'insacermo_physionet/**'
+      - '.github/workflows/insacermo-physionet-cross-hospital.yml'
+  workflow_dispatch:
+
+jobs:
+  run-physionet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas scikit-learn
+
+      - name: Download frozen public PhysioNet mirror archives
+        run: |
+          mkdir -p insacermo_physionet/data
+          curl -L --fail --retry 3 -o insacermo_physionet/data/training_setA.zip https://raw.githubusercontent.com/Abhi5hekk/EarlySepsisPrediction/master/training_setA.zip
+          curl -L --fail --retry 3 -o insacermo_physionet/data/training_setB.zip https://raw.githubusercontent.com/Abhi5hekk/EarlySepsisPrediction/master/training_setB.zip
+          test "$(stat -c%s insacermo_physionet/data/training_setA.zip)" -eq 22991842
+          test "$(stat -c%s insacermo_physionet/data/training_setB.zip)" -eq 20000482
+          unzip -t insacermo_physionet/data/training_setA.zip >/dev/null
+          unzip -t insacermo_physionet/data/training_setB.zip >/dev/null
+
+      - name: Run frozen INSACERMO analysis
+        run: |
+          mkdir -p insacermo_physionet/output
+          python insacermo_physionet/run_INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1.py \
+            --setA insacermo_physionet/data/training_setA.zip \
+            --setB insacermo_physionet/data/training_setB.zip \
+            --outdir insacermo_physionet/output
+
+      - name: Save execution metadata
+        if: always()
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib
+          root = pathlib.Path('insacermo_physionet')
+          def sha(p):
+              p = pathlib.Path(p)
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for b in iter(lambda:f.read(1024*1024), b''):
+                      h.update(b)
+              return h.hexdigest()
+          meta = {
+              'runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1.py'),
+              'setA_size': (root/'data/training_setA.zip').stat().st_size if (root/'data/training_setA.zip').exists() else None,
+              'setB_size': (root/'data/training_setB.zip').stat().st_size if (root/'data/training_setB.zip').exists() else None,
+              'setA_sha256': sha(root/'data/training_setA.zip') if (root/'data/training_setA.zip').exists() else None,
+              'setB_sha256': sha(root/'data/training_setB.zip') if (root/'data/training_setB.zip').exists() else None,
+          }
+          out=root/'output'
+          out.mkdir(exist_ok=True)
+          (out/'EXECUTION_METADATA.json').write_text(json.dumps(meta,indent=2))
+          PY
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1
+          path: insacermo_physionet/output/
+          if-no-files-found: warn
