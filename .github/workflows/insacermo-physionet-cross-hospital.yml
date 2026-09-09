@@ -35,13 +35,21 @@ jobs:
           unzip -t insacermo_physionet/data/training_setA.zip >/dev/null
           unzip -t insacermo_physionet/data/training_setB.zip >/dev/null
 
-      - name: Run frozen INSACERMO analysis
+      - name: Run original frozen INSACERMO analysis
         run: |
           mkdir -p insacermo_physionet/output
           python insacermo_physionet/run_INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1.py \
             --setA insacermo_physionet/data/training_setA.zip \
             --setB insacermo_physionet/data/training_setB.zip \
             --outdir insacermo_physionet/output
+
+      - name: Run post-primary compression repair analysis
+        run: |
+          mkdir -p insacermo_physionet/repair_output
+          cd insacermo_physionet/data
+          python ../run_INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1.py
+          mv INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1_METRICS.csv ../repair_output/
+          mv INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1_RECEIPT.json ../repair_output/
 
       - name: Save execution metadata
         if: always()
@@ -57,21 +65,30 @@ jobs:
                       h.update(b)
               return h.hexdigest()
           meta = {
-              'runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1.py'),
+              'original_runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1.py'),
+              'repair_runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1.py'),
               'setA_size': (root/'data/training_setA.zip').stat().st_size if (root/'data/training_setA.zip').exists() else None,
               'setB_size': (root/'data/training_setB.zip').stat().st_size if (root/'data/training_setB.zip').exists() else None,
               'setA_sha256': sha(root/'data/training_setA.zip') if (root/'data/training_setA.zip').exists() else None,
               'setB_sha256': sha(root/'data/training_setB.zip') if (root/'data/training_setB.zip').exists() else None,
           }
-          out=root/'output'
+          out=root/'repair_output'
           out.mkdir(exist_ok=True)
           (out/'EXECUTION_METADATA.json').write_text(json.dumps(meta,indent=2))
           PY
 
-      - name: Upload results
+      - name: Upload original results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1
           path: insacermo_physionet/output/
+          if-no-files-found: warn
+
+      - name: Upload repair results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1
+          path: insacermo_physionet/repair_output/
           if-no-files-found: warn
