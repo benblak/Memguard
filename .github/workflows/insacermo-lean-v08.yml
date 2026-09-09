@@ -1,0 +1,28 @@
+name: INSACERMO Lean V0.8 build test
+on:
+  push:
+    branches: [insacermo-core-v08-build-test]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Materialize flattened Lean source
+        run: |
+          cd lean_ci
+          cat src_*.b64 | base64 -d | gzip -d > InsacermoFlat.lean
+      - name: Install Lean and mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          use-github-cache: false
+          use-mathlib-cache: true
+          lake-package-directory: lean_ci
+      - name: Build flattened INSACERMO core
+        working-directory: lean_ci
+        run: |
+          lake update
+          lake env lean InsacermoFlat.lean
