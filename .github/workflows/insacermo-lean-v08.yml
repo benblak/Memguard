@@ -1,4 +1,4 @@
-name: INSACERMO Lean V0.9 build test
+name: INSACERMO Lean V0.10 Math Core kernel test
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,15 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize flattened Lean source V0.9
+      - name: Materialize and patch Math Core
         run: |
           cd lean_ci
-          gzip -dc InsacermoFlatV09.lean.gz > InsacermoFlat.lean
+          gzip -dc InsacermoFlatV09.lean.gz > full.lean
+          awk '/-- ===== Compiler.lean =====/{exit} {print}' full.lean > InsacermoFlat.lean
+          patch InsacermoFlat.lean < mathcore_v010.patch
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Resolve mathlib and compile INSACERMO V0.9
+      - name: Kernel check INSACERMO Math Core
         working-directory: lean_ci
         run: |
           lake update
