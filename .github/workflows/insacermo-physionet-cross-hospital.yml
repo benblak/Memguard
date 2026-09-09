@@ -51,6 +51,14 @@ jobs:
           mv INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1_METRICS.csv ../repair_output/
           mv INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1_RECEIPT.json ../repair_output/
 
+      - name: Run unlabeled target-PROBE repair analysis
+        run: |
+          mkdir -p insacermo_physionet/probe_output
+          cd insacermo_physionet/data
+          python ../run_INSACERMO_PHYSIONET2019_UNLABELED_TARGET_PROBE_V1.py
+          mv INSACERMO_PHYSIONET2019_UNLABELED_TARGET_PROBE_V1_METRICS.csv ../probe_output/
+          mv INSACERMO_PHYSIONET2019_UNLABELED_TARGET_PROBE_V1_RECEIPT.json ../probe_output/
+
       - name: Save execution metadata
         if: always()
         run: |
@@ -67,12 +75,13 @@ jobs:
           meta = {
               'original_runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_CROSS_HOSPITAL_V1.py'),
               'repair_runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1.py'),
+              'probe_runner_sha256': sha(root/'run_INSACERMO_PHYSIONET2019_UNLABELED_TARGET_PROBE_V1.py'),
               'setA_size': (root/'data/training_setA.zip').stat().st_size if (root/'data/training_setA.zip').exists() else None,
               'setB_size': (root/'data/training_setB.zip').stat().st_size if (root/'data/training_setB.zip').exists() else None,
               'setA_sha256': sha(root/'data/training_setA.zip') if (root/'data/training_setA.zip').exists() else None,
               'setB_sha256': sha(root/'data/training_setB.zip') if (root/'data/training_setB.zip').exists() else None,
           }
-          out=root/'repair_output'
+          out=root/'probe_output'
           out.mkdir(exist_ok=True)
           (out/'EXECUTION_METADATA.json').write_text(json.dumps(meta,indent=2))
           PY
@@ -91,4 +100,12 @@ jobs:
         with:
           name: INSACERMO_PHYSIONET2019_COMPRESSION_REPAIR_V1
           path: insacermo_physionet/repair_output/
+          if-no-files-found: warn
+
+      - name: Upload target-PROBE results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_PHYSIONET2019_UNLABELED_TARGET_PROBE_V1
+          path: insacermo_physionet/probe_output/
           if-no-files-found: warn
