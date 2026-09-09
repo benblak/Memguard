@@ -13,7 +13,7 @@ jobs:
       - name: Materialize flattened Lean source V0.9
         run: |
           cd lean_ci
-          cat v09_*.b64 | base64 -d | gzip -d > InsacermoFlat.lean
+          gzip -dc InsacermoFlatV09.lean.gz > InsacermoFlat.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
