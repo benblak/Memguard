@@ -1,4 +1,4 @@
-name: INSACERMO Lean V0.8 build test
+name: INSACERMO Lean V0.9 build test
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,15 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize flattened Lean source
+      - name: Materialize flattened Lean source V0.9
         run: |
           cd lean_ci
-          cat src_*.b64 | base64 -d | gzip -d > InsacermoFlat.lean
+          cat v09_*.b64 | base64 -d | gzip -d > InsacermoFlat.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Resolve mathlib and compile INSACERMO
+      - name: Resolve mathlib and compile INSACERMO V0.9
         working-directory: lean_ci
         run: |
           lake update
