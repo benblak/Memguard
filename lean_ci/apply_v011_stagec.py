@@ -10,22 +10,22 @@ replacement = r'''-- ===== OperationalSemantics.lean =====
 
 namespace Insacermo
 
-variable {S Π : Type*}
+variable {S Plan : Type*}
 
 /-- Operational admissibility relative to the strategies that are *currently
     available*.  The ordered-list representation is computational data; the
     proposition depends only on membership. -/
 def FiniteAdmissible
-    [Fintype S] [DecidableEq S] [DecidableEq Π]
-    (sys : ContractSystem S Π) (available : List Π)
+    [Fintype S] [DecidableEq S] [DecidableEq Plan]
+    (sys : ContractSystem S Plan) (available : List Plan)
     (b : Nat) (B : List S) : Prop :=
-  ∃ π : Π, ExecFeasible sys available b B π
+  ∃ π : Plan, ExecFeasible sys available b B π
 
 /-- Restricted feasibility always implies the unrestricted semantics on the
     set represented by the ambiguity list. -/
 theorem finiteAdmissible_implies_admissible
-    [Fintype S] [DecidableEq S] [DecidableEq Π]
-    (sys : ContractSystem S Π) (available : List Π)
+    [Fintype S] [DecidableEq S] [DecidableEq Plan]
+    (sys : ContractSystem S Plan) (available : List Plan)
     (b : Nat) (B : List S) :
     FiniteAdmissible sys available b B →
       Admissible sys b {s : S | s ∈ B} := by
@@ -39,9 +39,9 @@ theorem finiteAdmissible_implies_admissible
     noncomputable enumeration of a finite type while expressing the same
     semantic bridge. -/
 theorem finiteAdmissible_all_available_iff_admissible
-    [Fintype S] [DecidableEq S] [DecidableEq Π]
-    (sys : ContractSystem S Π) (available : List Π)
-    (hall : ∀ π : Π, π ∈ available)
+    [Fintype S] [DecidableEq S] [DecidableEq Plan]
+    (sys : ContractSystem S Plan) (available : List Plan)
+    (hall : ∀ π : Plan, π ∈ available)
     (b : Nat) (B : List S) :
     FiniteAdmissible sys available b B ↔
       Admissible sys b {s : S | s ∈ B} := by
@@ -58,9 +58,9 @@ theorem finiteAdmissible_all_available_iff_admissible
     class.  INCOMPLETE records the same failed finite search without that
     declaration. -/
 def OperationalSound
-    [Fintype S] [DecidableEq S] [DecidableEq Π]
-    (input : ExecInput S Π) [DecidableRel input.sys.good]
-    (out : ExecResult Π) : Prop :=
+    [Fintype S] [DecidableEq S] [DecidableEq Plan]
+    (input : ExecInput S Plan) [DecidableRel input.sys.good]
+    (out : ExecResult Plan) : Prop :=
   match out.label with
   | .act =>
       FiniteAdmissible input.sys input.available input.budget input.ambiguity
