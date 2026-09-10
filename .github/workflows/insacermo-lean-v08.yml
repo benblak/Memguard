@@ -1,4 +1,4 @@
-name: INSACERMO Core Engine V0.11 full kernel archive
+name: INSACERMO Core Engine V0.11 runtime smoke tests
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize complete V0.11 engine
+      - name: Materialize certified V0.11 engine plus smoke tests
         run: |
           set -euo pipefail
           cd lean_ci
@@ -34,85 +34,28 @@ jobs:
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
           cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
-          wc -l INSACERMO_CORE_ENGINE_V011.lean
+          cat INSACERMO_CORE_ENGINE_V011.lean v011_smoke_append.lean > INSACERMO_CORE_ENGINE_V011_SMOKE.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Kernel check complete V0.11 engine
+      - name: Execute and kernel-check V0.11 smoke tests
         working-directory: lean_ci
-        run: |
-          lake update
-          lake exe cache get
-          lake env lean INSACERMO_CORE_ENGINE_V011.lean
-      - name: Verify no proof placeholders
-        working-directory: lean_ci
-        run: |
-          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011.lean; then exit 1; fi
-          echo 'No sorry/admit placeholders found.'
-      - name: Build full V0.11 proof archive
         run: |
           set -euo pipefail
-          ROOT="$PWD"
-          cd lean_ci
-          PACK=INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED
-          rm -rf "$PACK" "$PACK.zip" "$PACK.zip.sha256"
-          mkdir -p "$PACK"
-          cp INSACERMO_CORE_ENGINE_V011.lean InsacermoV011StageD.lean InsacermoV011StageC.lean InsacermoV011StageB.lean semantic_stagea_verified.lean mathcore_v010.lean InsacermoFlatV09.lean.gz apply_mathcore_v010.py apply_v011_stagea.py apply_v011_stageb.py apply_v011_stagec.py apply_v011_staged.py apply_v011_staged_terminal_fix.py lean-toolchain lakefile.toml "$PACK/"
-          cp "$ROOT/.github/workflows/insacermo-lean-v08.yml" "$PACK/kernel-verification-workflow.yml"
-          LEAN_VERSION=$(lean --version | head -1)
-          MATHLIB_REV=$(git -C .lake/packages/mathlib rev-parse HEAD)
-          SOURCE_SHA=$(sha256sum INSACERMO_CORE_ENGINE_V011.lean | awk '{print $1}')
-          printf '%s\n' \
-            'INSACERMO CORE ENGINE V0.11 — LEAN KERNEL VERIFIED' \
-            '' \
-            'Verified formal scope:' \
-            '- V0.10 Math Core' \
-            '- Compiler' \
-            '- CompilerTernary' \
-            '- ExecutableCompiler' \
-            '- ExecutableTernary' \
-            '- OperationalSemantics' \
-            '- ExecutableSoundness' \
-            '- compile_operational_sound' \
-            '' \
-            'Canonical final verification run before archival: 34491359406' \
-            "Archival verification run: ${GITHUB_RUN_ID}" \
-            'Repository: benblak/Memguard' \
-            "Branch: ${GITHUB_REF_NAME}" \
-            "Archive commit: ${GITHUB_SHA}" \
-            'Kernel command: lake env lean INSACERMO_CORE_ENGINE_V011.lean' \
-            'Placeholder gate: no sorry/admit' \
-            "Lean: ${LEAN_VERSION}" \
-            "mathlib revision: ${MATHLIB_REV}" \
-            "Verified source SHA256: ${SOURCE_SHA}" \
-            '' \
-            'Truth boundary: Lean kernel acceptance applies to the archived formal statements under their declared definitions and assumptions.' \
-            'It does not by itself establish empirical validity, universality, historical novelty, or correctness for every real-world system.' \
-            > "$PACK/KERNEL_CERTIFICATE.txt"
-          printf '%s\n' \
-            '# INSACERMO Core Engine V0.11 — Kernel-Verified Proof Pack' \
-            '' \
-            'Verified chain: Math Core -> Compiler -> Executable Compiler -> Operational Semantics -> Executable Soundness.' \
-            '' \
-            'Principal final bridge: `compile_operational_sound`.' \
-            'Each label emitted by the executable compiler satisfies its declared operational semantics under the formal definitions and assumptions.' \
-            '`REFUSE` is explicitly relative to the trusted `searchComplete` declaration and declared intervention search space.' \
-            '' \
-            'The executable finite search uses ordered lists to avoid noncomputable witness selection from unordered finite sets.' \
-            '' \
-            'Reproduce with the pinned toolchain, `lake update`, optionally `lake exe cache get`, then `lake env lean INSACERMO_CORE_ENGINE_V011.lean`.' \
-            > "$PACK/README.md"
-          (cd "$PACK" && sha256sum * > SHA256SUMS.txt)
-          zip -qr "$PACK.zip" "$PACK"
-          sha256sum "$PACK.zip" > "$PACK.zip.sha256"
-          cat "$PACK.zip.sha256"
-      - name: Upload full V0.11 kernel proof artifact
+          lake update
+          lake exe cache get
+          lake env lean INSACERMO_CORE_ENGINE_V011_SMOKE.lean | tee V011_SMOKE_OUTPUT.txt
+      - name: Verify smoke suite has no placeholders
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_SMOKE.lean; then exit 1; fi
+          echo 'No sorry/admit placeholders found.'
+      - name: Upload smoke-test output
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED
+          name: INSACERMO_V011_RUNTIME_SMOKE_TESTS
           path: |
-            lean_ci/INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED.zip
-            lean_ci/INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED.zip.sha256
+            lean_ci/V011_SMOKE_OUTPUT.txt
+            lean_ci/v011_smoke_append.lean
           if-no-files-found: error
-          compression-level: 0
