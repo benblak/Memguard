@@ -1,4 +1,4 @@
-name: INSACERMO Lean V0.11 Stage C operational semantics
+name: INSACERMO Lean V0.11 Stage D executable soundness
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize verified Stage B plus OperationalSemantics
+      - name: Materialize verified Stage C plus ExecutableSoundness
         run: |
           set -euo pipefail
           cd lean_ci
@@ -32,19 +32,23 @@ jobs:
           cat InsacermoV011StageB.lean > InsacermoV011StageC.lean
           awk 'BEGIN{p=0} /-- ===== OperationalSemantics.lean =====/{p=1} /-- ===== ExecutableSoundness.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageC.lean
           python3 apply_v011_stagec.py
-          wc -l InsacermoV011StageC.lean
+
+          cat InsacermoV011StageC.lean > InsacermoV011StageD.lean
+          awk 'BEGIN{p=0} /-- ===== ExecutableSoundness.lean =====/{p=1} p{print}' full.lean >> InsacermoV011StageD.lean
+          python3 apply_v011_staged.py
+          wc -l InsacermoV011StageD.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Kernel check V0.11 Stage C
+      - name: Kernel check V0.11 Stage D
         working-directory: lean_ci
         run: |
           lake update
           lake exe cache get
-          lake env lean InsacermoV011StageC.lean
+          lake env lean InsacermoV011StageD.lean
       - name: Verify no proof placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' InsacermoV011StageC.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' InsacermoV011StageD.lean; then exit 1; fi
           echo 'No sorry/admit placeholders found.'
