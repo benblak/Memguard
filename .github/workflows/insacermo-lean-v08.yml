@@ -1,4 +1,4 @@
-name: INSACERMO V0.11 ModeChoice full-210 bridge
+name: INSACERMO V0.11 WDBC PROBE bridge
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize certified V0.11 engine plus full-210 bridge
+      - name: Materialize certified V0.11 engine plus WDBC bridge
         run: |
           set -euo pipefail
           cd lean_ci
@@ -34,58 +34,53 @@ jobs:
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
           cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
-          python3 generate_v011_modechoice_full210.py
-          python3 apply_v011_modechoice_full210_v3.py
-          python3 apply_v011_modechoice_full210_v4.py
-          cat INSACERMO_CORE_ENGINE_V011.lean v011_modechoice_full210_bridge.lean > INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean
-          wc -l INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean
+          python3 generate_v011_wdbc_probe.py
+          cat INSACERMO_CORE_ENGINE_V011.lean v011_wdbc_probe_bridge.lean > INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean
+          wc -l INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Execute and kernel-check full-210 bridge
+      - name: Execute and kernel-check WDBC PROBE bridge
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean | tee V011_MODECHOICE_FULL210_OUTPUT.txt
-      - name: Verify full-210 suite has no placeholders
+          lake env lean INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean | tee V011_WDBC_PROBE_OUTPUT.txt
+      - name: Verify WDBC suite has no placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean; then exit 1; fi
           echo 'No sorry/admit placeholders found.'
-      - name: Build full-210 evidence note
+      - name: Build WDBC evidence note
         working-directory: lean_ci
         run: |
           printf '%s\n' \
-            'INSACERMO V0.11 — MODECHOICE FULL-210 BRIDGE' \
+            'INSACERMO V0.11 — WDBC PROBE BRIDGE' \
             '' \
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
-            'Raw statsmodels modechoice.csv SHA256: d2d72c1db440f8ffce01f58ed39fc1145569ec1703970dac1636c154fc01fd8e' \
-            'Rows: 840' \
-            'Individuals: 210' \
-            'Contract: Pareto-undominated in (gc, ttme+invt), both minimized.' \
-            'Raw mechanical profile counts: 1001=109, 1000=63, 1100=12, 1010=9, 1101=8, 1011=7, 0001=2.' \
-            'Current support sizes: mode1=208, mode2=20, mode3=16, mode4=126.' \
-            'All unordered individual pairs: 21945.' \
-            'Minimal pair conflicts: 168.' \
-            'Mechanically derived universal frontier: (30,180), (56,137), (58,90), (76,85), (92,80).' \
+            'Source: official UCI WDBC archive downloaded during CI.' \
+            'Rows: 569; malignant=212; benign=357.' \
+            'Probe contract: six selected features discretized by quartiles.' \
+            'Expected structural result: six-measure signature gives 462 observed class-pure fibers.' \
+            'Drop-one unresolved opposite-class pairs: 15,16,9,6,8,16.' \
+            'Expected V0.11 decisions: REFUSE without probe; PROBE candidate index 6 with full six-measure signature.' \
             '' \
-            'Boundary: Lean verifies the exact 210-world incidence bridge and V0.11 executable OperationalSound decisions. The numeric Pareto frontier was derived mechanically from the raw 840 rows and imported as certified candidate supports; Lean does not parse or independently prove those raw-data numeric calculations.' \
-            > MODECHOICE_FULL210_CERTIFICATE.txt
-          sha256sum v011_modechoice_full210_bridge.lean generate_v011_modechoice_full210.py apply_v011_modechoice_full210_v3.py apply_v011_modechoice_full210_v4.py INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean V011_MODECHOICE_FULL210_OUTPUT.txt MODECHOICE_FULL210_CERTIFICATE.txt > MODECHOICE_FULL210_SHA256SUMS.txt
-      - name: Upload full-210 evidence
+            'Boundary: benchmark structural validation only, not clinical diagnosis or medical-device validation.' \
+            > WDBC_PROBE_CERTIFICATE.txt
+          sha256sum generate_v011_wdbc_probe.py v011_wdbc_probe_bridge.lean WDBC_PROBE_569_BINNED.csv INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean V011_WDBC_PROBE_OUTPUT.txt WDBC_GENERATOR_RECEIPT.txt WDBC_PROBE_CERTIFICATE.txt > WDBC_PROBE_SHA256SUMS.txt
+      - name: Upload WDBC evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_V011_MODECHOICE_FULL210_BRIDGE
+          name: INSACERMO_V011_WDBC_PROBE_BRIDGE
           path: |
-            lean_ci/V011_MODECHOICE_FULL210_OUTPUT.txt
-            lean_ci/v011_modechoice_full210_bridge.lean
-            lean_ci/generate_v011_modechoice_full210.py
-            lean_ci/apply_v011_modechoice_full210_v3.py
-            lean_ci/apply_v011_modechoice_full210_v4.py
-            lean_ci/MODECHOICE_FULL210_CERTIFICATE.txt
-            lean_ci/MODECHOICE_FULL210_SHA256SUMS.txt
+            lean_ci/V011_WDBC_PROBE_OUTPUT.txt
+            lean_ci/v011_wdbc_probe_bridge.lean
+            lean_ci/generate_v011_wdbc_probe.py
+            lean_ci/WDBC_PROBE_569_BINNED.csv
+            lean_ci/WDBC_GENERATOR_RECEIPT.txt
+            lean_ci/WDBC_PROBE_CERTIFICATE.txt
+            lean_ci/WDBC_PROBE_SHA256SUMS.txt
           if-no-files-found: error
