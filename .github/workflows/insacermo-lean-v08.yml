@@ -1,4 +1,4 @@
-name: INSACERMO Lean V0.11 Stage D executable soundness
+name: INSACERMO Core Engine V0.11 full kernel archive
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,46 +10,156 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize verified Stage C plus ExecutableSoundness
+      - name: Materialize complete V0.11 engine
         run: |
           set -euo pipefail
           cd lean_ci
           gzip -dc InsacermoFlatV09.lean.gz > full.lean
+
+          # Frozen V0.10 mathematical core.
           awk '/-- ===== Compiler.lean =====/{exit} {print}' full.lean > InsacermoFlat.lean
           python3 apply_mathcore_v010.py
           mv InsacermoFlat.lean mathcore_v010.lean
 
+          # V0.11 semantic compiler.
           cat mathcore_v010.lean > InsacermoV011StageB.lean
           awk 'BEGIN{p=0} /-- ===== Compiler.lean =====/{p=1} /-- ===== ExecutableCompiler.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageB.lean
           cp InsacermoV011StageB.lean InsacermoV011StageA.lean
           python3 apply_v011_stagea.py
           mv InsacermoV011StageA.lean semantic_stagea_verified.lean
 
+          # Executable compiler and executable ternary witness.
           cat semantic_stagea_verified.lean > InsacermoV011StageB.lean
           awk 'BEGIN{p=0} /-- ===== ExecutableCompiler.lean =====/{p=1} /-- ===== OperationalSemantics.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageB.lean
           python3 apply_v011_stageb.py
 
+          # Operational semantics.
           cat InsacermoV011StageB.lean > InsacermoV011StageC.lean
           awk 'BEGIN{p=0} /-- ===== OperationalSemantics.lean =====/{p=1} /-- ===== ExecutableSoundness.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageC.lean
           python3 apply_v011_stagec.py
 
+          # Executable soundness and terminal proof repair.
           cat InsacermoV011StageC.lean > InsacermoV011StageD.lean
           awk 'BEGIN{p=0} /-- ===== ExecutableSoundness.lean =====/{p=1} p{print}' full.lean >> InsacermoV011StageD.lean
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
-          wc -l InsacermoV011StageD.lean
+          cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
+          wc -l INSACERMO_CORE_ENGINE_V011.lean
+
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Kernel check V0.11 Stage D
+
+      - name: Kernel check complete V0.11 engine
         working-directory: lean_ci
         run: |
           lake update
           lake exe cache get
-          lake env lean InsacermoV011StageD.lean
+          lake env lean INSACERMO_CORE_ENGINE_V011.lean
+
       - name: Verify no proof placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' InsacermoV011StageD.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011.lean; then
+            echo 'Forbidden proof placeholder found.'
+            exit 1
+          fi
           echo 'No sorry/admit placeholders found.'
+
+      - name: Build full V0.11 proof archive
+        run: |
+          set -euo pipefail
+          ROOT="$PWD"
+          cd lean_ci
+          PACK=INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED
+          rm -rf "$PACK" "$PACK.zip" "$PACK.zip.sha256"
+          mkdir -p "$PACK"
+
+          cp INSACERMO_CORE_ENGINE_V011.lean "$PACK/"
+          cp InsacermoV011StageD.lean "$PACK/"
+          cp InsacermoV011StageC.lean "$PACK/"
+          cp InsacermoV011StageB.lean "$PACK/"
+          cp semantic_stagea_verified.lean "$PACK/"
+          cp mathcore_v010.lean "$PACK/"
+          cp InsacermoFlatV09.lean.gz "$PACK/"
+          cp apply_mathcore_v010.py "$PACK/"
+          cp apply_v011_stagea.py "$PACK/"
+          cp apply_v011_stageb.py "$PACK/"
+          cp apply_v011_stagec.py "$PACK/"
+          cp apply_v011_staged.py "$PACK/"
+          cp apply_v011_staged_terminal_fix.py "$PACK/"
+          cp lean-toolchain "$PACK/"
+          cp lakefile.toml "$PACK/"
+          cp "$ROOT/.github/workflows/insacermo-lean-v08.yml" "$PACK/kernel-verification-workflow.yml"
+
+          LEAN_VERSION=$(lean --version | head -1)
+          MATHLIB_REV=$(git -C .lake/packages/mathlib rev-parse HEAD)
+          SOURCE_SHA=$(sha256sum INSACERMO_CORE_ENGINE_V011.lean | awk '{print $1}')
+
+          cat > "$PACK/KERNEL_CERTIFICATE.txt" <<EOF
+INSACERMO CORE ENGINE V0.11 — LEAN KERNEL VERIFIED
+
+Verified formal scope:
+- V0.10 Math Core
+- Compiler
+- CompilerTernary
+- ExecutableCompiler
+- ExecutableTernary
+- OperationalSemantics
+- ExecutableSoundness
+- compile_operational_sound
+
+Canonical final verification run before archival: 34491359406
+Archival verification run: ${GITHUB_RUN_ID}
+Repository: benblak/Memguard
+Branch: ${GITHUB_REF_NAME}
+Archive commit: ${GITHUB_SHA}
+Kernel command: lake env lean INSACERMO_CORE_ENGINE_V011.lean
+Placeholder gate: no sorry/admit
+Lean: ${LEAN_VERSION}
+mathlib revision: ${MATHLIB_REV}
+Verified source SHA256: ${SOURCE_SHA}
+
+Truth boundary:
+This certificate records Lean kernel acceptance of the formal statements in the archived source under their declared definitions and assumptions. It does not by itself establish empirical validity, universality, historical novelty, or correctness of assumptions about any particular real-world system.
+EOF
+
+          cat > "$PACK/README.md" <<'EOF'
+# INSACERMO Core Engine V0.11 — Kernel-Verified Proof Pack
+
+This archive freezes the complete V0.11 Lean source and reconstruction chain for the verified INSACERMO core engine.
+
+The certified chain is:
+
+Math Core → Compiler → Executable Compiler → Operational Semantics → Executable Soundness.
+
+The principal final bridge is `compile_operational_sound`: each label emitted by the executable compiler satisfies its declared operational semantics, relative to the definitions and assumptions in the source. `REFUSE` remains explicitly relative to the trusted `searchComplete` declaration and the declared intervention search space.
+
+The executable finite search uses ordered lists, avoiding noncomputable witness selection from unordered finite sets.
+
+## Reproduce
+
+1. Install the Lean version pinned by `lean-toolchain`.
+2. Run `lake update`.
+3. Run `lake exe cache get` if desired.
+4. Run `lake env lean INSACERMO_CORE_ENGINE_V011.lean`.
+5. Confirm there are no `sorry` or `admit` placeholders.
+
+See `KERNEL_CERTIFICATE.txt` and `SHA256SUMS.txt` for the verification metadata and cryptographic hashes.
+EOF
+
+          (cd "$PACK" && sha256sum * > SHA256SUMS.txt)
+          zip -qr "$PACK.zip" "$PACK"
+          sha256sum "$PACK.zip" > "$PACK.zip.sha256"
+          cat "$PACK.zip.sha256"
+
+      - name: Upload full V0.11 kernel proof artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED
+          path: |
+            lean_ci/INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED.zip
+            lean_ci/INSACERMO_CORE_ENGINE_V011_KERNEL_VERIFIED.zip.sha256
+          if-no-files-found: error
+          compression-level: 0
