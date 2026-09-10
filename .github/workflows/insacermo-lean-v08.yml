@@ -34,8 +34,7 @@ jobs:
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
           cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
-          python3 generate_v011_modechoice_full210.py
-          python3 apply_v011_modechoice_full210_harness_fix.py
+          python3 generate_v011_modechoice_full210_v2.py
           cat INSACERMO_CORE_ENGINE_V011.lean v011_modechoice_full210_bridge.lean > INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean
           wc -l INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean
       - name: Install Lean 4.32.1
@@ -68,12 +67,13 @@ jobs:
             'Contract: Pareto-undominated in (gc, ttme+invt), both minimized.' \
             'Raw mechanical profile counts: 1001=109, 1000=63, 1100=12, 1010=9, 1101=8, 1011=7, 0001=2.' \
             'Current support sizes: mode1=208, mode2=20, mode3=16, mode4=126.' \
+            'All unordered individual pairs checked in Lean: 21945.' \
             'Minimal pair conflicts: 168.' \
             'Mechanically derived universal frontier: (30,180), (56,137), (58,90), (76,85), (92,80).' \
             '' \
-            'Boundary: Lean verifies the exact 210-world incidence bridge and V0.11 executable OperationalSound decisions. The numeric Pareto frontier was derived mechanically from the raw 840 rows and imported as certified candidate supports; Lean does not parse or independently prove those floating-point/raw-data calculations.' \
+            'Boundary: Lean verifies the exact 210-world incidence bridge and V0.11 executable OperationalSound decisions. The numeric Pareto frontier was derived mechanically from the raw 840 rows and imported as certified candidate supports; Lean does not parse or independently prove those raw-data numeric calculations.' \
             > MODECHOICE_FULL210_CERTIFICATE.txt
-          sha256sum v011_modechoice_full210_bridge.lean generate_v011_modechoice_full210.py apply_v011_modechoice_full210_harness_fix.py INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean V011_MODECHOICE_FULL210_OUTPUT.txt MODECHOICE_FULL210_CERTIFICATE.txt > MODECHOICE_FULL210_SHA256SUMS.txt
+          sha256sum v011_modechoice_full210_bridge.lean generate_v011_modechoice_full210_v2.py INSACERMO_CORE_ENGINE_V011_MODECHOICE_FULL210.lean V011_MODECHOICE_FULL210_OUTPUT.txt MODECHOICE_FULL210_CERTIFICATE.txt > MODECHOICE_FULL210_SHA256SUMS.txt
       - name: Upload full-210 evidence
         uses: actions/upload-artifact@v4
         with:
@@ -81,8 +81,7 @@ jobs:
           path: |
             lean_ci/V011_MODECHOICE_FULL210_OUTPUT.txt
             lean_ci/v011_modechoice_full210_bridge.lean
-            lean_ci/generate_v011_modechoice_full210.py
-            lean_ci/apply_v011_modechoice_full210_harness_fix.py
+            lean_ci/generate_v011_modechoice_full210_v2.py
             lean_ci/MODECHOICE_FULL210_CERTIFICATE.txt
             lean_ci/MODECHOICE_FULL210_SHA256SUMS.txt
           if-no-files-found: error
