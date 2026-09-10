@@ -1,4 +1,4 @@
-name: INSACERMO Core Engine V0.11 runtime smoke tests
+name: INSACERMO V0.11 ModeChoice real-data integration test
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize certified V0.11 engine plus smoke tests
+      - name: Materialize certified V0.11 engine plus ModeChoice test
         run: |
           set -euo pipefail
           cd lean_ci
@@ -34,28 +34,28 @@ jobs:
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
           cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
-          cat INSACERMO_CORE_ENGINE_V011.lean v011_smoke_append.lean > INSACERMO_CORE_ENGINE_V011_SMOKE.lean
+          cat INSACERMO_CORE_ENGINE_V011.lean v011_modechoice_real_append.lean > INSACERMO_CORE_ENGINE_V011_MODECHOICE_REAL.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Execute and kernel-check V0.11 smoke tests
+      - name: Execute ModeChoice real-data integration test
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean INSACERMO_CORE_ENGINE_V011_SMOKE.lean | tee V011_SMOKE_OUTPUT.txt
-      - name: Verify smoke suite has no placeholders
+          lake env lean INSACERMO_CORE_ENGINE_V011_MODECHOICE_REAL.lean | tee V011_MODECHOICE_REAL_OUTPUT.txt
+      - name: Verify integration suite has no placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_SMOKE.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_MODECHOICE_REAL.lean; then exit 1; fi
           echo 'No sorry/admit placeholders found.'
-      - name: Upload smoke-test output
+      - name: Upload ModeChoice test evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_V011_RUNTIME_SMOKE_TESTS
+          name: INSACERMO_V011_MODECHOICE_REAL_TEST
           path: |
-            lean_ci/V011_SMOKE_OUTPUT.txt
-            lean_ci/v011_smoke_append.lean
+            lean_ci/V011_MODECHOICE_REAL_OUTPUT.txt
+            lean_ci/v011_modechoice_real_append.lean
           if-no-files-found: error
