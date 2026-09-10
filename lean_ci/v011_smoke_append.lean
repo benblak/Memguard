@@ -15,6 +15,30 @@ def ternaryExecActInput : ExecInput TState EPlan where
   forgets := []
   searchComplete := true
 
+local instance ternaryExecActGoodDecidable :
+    DecidableRel ternaryExecActInput.sys.good := by
+  simpa [ternaryExecActInput] using executableTernaryGoodDecidable
+
+local instance ternaryExecPreserveGoodDecidable :
+    DecidableRel ternaryExecPreserveInput.sys.good := by
+  simpa [ternaryExecPreserveInput] using executableTernaryGoodDecidable
+
+local instance ternaryExecProbeGoodDecidable :
+    DecidableRel ternaryExecProbeInput.sys.good := by
+  simpa [ternaryExecProbeInput] using executableTernaryGoodDecidable
+
+local instance ternaryExecRepairGoodDecidable :
+    DecidableRel ternaryExecRepairInput.sys.good := by
+  simpa [ternaryExecRepairInput] using executableTernaryGoodDecidable
+
+local instance ternaryExecRefuseGoodDecidable :
+    DecidableRel ternaryExecRefuseInput.sys.good := by
+  simpa [ternaryExecRefuseInput] using executableTernaryGoodDecidable
+
+local instance ternaryExecIncompleteGoodDecidable :
+    DecidableRel ternaryExecIncompleteInput.sys.good := by
+  simpa [ternaryExecIncompleteInput] using executableTernaryGoodDecidable
+
 #eval compile ternaryExecActInput
 #eval compile ternaryExecPreserveInput
 #eval compile ternaryExecProbeInput
@@ -22,26 +46,26 @@ def ternaryExecActInput : ExecInput TState EPlan where
 #eval compile ternaryExecRefuseInput
 #eval compile ternaryExecIncompleteInput
 
-example : (compile ternaryExecActInput).label = .act := by native_decide
-example : (compile ternaryExecActInput).strategy = some .ab := by native_decide
+example : (compile ternaryExecActInput).label = ExecLabel.act := by native_decide
+example : (compile ternaryExecActInput).strategy = some EPlan.ab := by native_decide
 
-example : (compile ternaryExecPreserveInput).label = .preserve := by native_decide
+example : (compile ternaryExecPreserveInput).label = ExecLabel.preserve := by native_decide
 example : (compile ternaryExecPreserveInput).candidateIndex = some 0 := by native_decide
-example : (compile ternaryExecPreserveInput).strategy = some .ab := by native_decide
+example : (compile ternaryExecPreserveInput).strategy = some EPlan.ab := by native_decide
 
-example : (compile ternaryExecProbeInput).label = .probe := by native_decide
+example : (compile ternaryExecProbeInput).label = ExecLabel.probe := by native_decide
 example : (compile ternaryExecProbeInput).candidateIndex = some 0 := by native_decide
 example : (compile ternaryExecProbeInput).strategy = none := by native_decide
 
-example : (compile ternaryExecRepairInput).label = .repair := by native_decide
+example : (compile ternaryExecRepairInput).label = ExecLabel.repair := by native_decide
 example : (compile ternaryExecRepairInput).candidateIndex = some 0 := by native_decide
-example : (compile ternaryExecRepairInput).strategy = some .universalOne := by native_decide
+example : (compile ternaryExecRepairInput).strategy = some EPlan.universalOne := by native_decide
 
-example : (compile ternaryExecRefuseInput).label = .refuse := by native_decide
+example : (compile ternaryExecRefuseInput).label = ExecLabel.refuse := by native_decide
 example : (compile ternaryExecRefuseInput).candidateIndex = none := by native_decide
 example : (compile ternaryExecRefuseInput).strategy = none := by native_decide
 
-example : (compile ternaryExecIncompleteInput).label = .incomplete := by native_decide
+example : (compile ternaryExecIncompleteInput).label = ExecLabel.incomplete := by native_decide
 example : (compile ternaryExecIncompleteInput).candidateIndex = none := by native_decide
 example : (compile ternaryExecIncompleteInput).strategy = none := by native_decide
 
