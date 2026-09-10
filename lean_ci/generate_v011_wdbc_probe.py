@@ -15,7 +15,7 @@ if len(rows) != 569:
 # wdbc.data columns: id, diagnosis, then 30 features in canonical WDBC order.
 # Selected six features: mean texture, mean symmetry, radius error,
 # smoothness error, worst area, worst compactness.
-cols = [3, 10, 12, 15, 25, 27]
+cols = [3, 10, 12, 16, 25, 27]
 classes = [0 if r[1] == 'M' else 1 for r in rows]
 if classes.count(0) != 212 or classes.count(1) != 357:
     raise SystemExit('unexpected class counts')
@@ -53,7 +53,6 @@ for d in range(6):
 if unresolved != [15,16,9,6,8,16]:
     raise SystemExit(f'unexpected drop-one unresolved counts: {unresolved}')
 
-# Canonical compact bridge fingerprint.
 bridge_lines = ['id,class,signature,drop0,drop1,drop2,drop3,drop4,drop5']
 for i in range(569):
     bridge_lines.append(','.join(map(str,[i,classes[i],full[i]]+[drops[d][i] for d in range(6)])))
