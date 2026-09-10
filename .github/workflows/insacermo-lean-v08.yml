@@ -21,6 +21,7 @@ jobs:
           mv InsacermoFlat.lean mathcore_v010.lean
           cat mathcore_v010.lean > InsacermoV011StageA.lean
           awk 'BEGIN{p=0} /-- ===== Compiler.lean =====/{p=1} /-- ===== ExecutableCompiler.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageA.lean
+          python3 apply_v011_stagea.py
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
