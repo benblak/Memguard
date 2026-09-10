@@ -26,3 +26,88 @@ jobs:
           lake update
           lake exe cache get
           lake env lean InsacermoFlat.lean
+      - name: Verify no sorry or admit
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' InsacermoFlat.lean; then
+            echo 'Forbidden proof placeholder found.'
+            exit 1
+          fi
+          echo 'No sorry/admit placeholders found.'
+      - name: Build archival proof pack
+        run: |
+          set -euo pipefail
+          PACK=INSACERMO_MATH_CORE_V0_10_KERNEL_VERIFIED
+          rm -rf "$PACK" "$PACK.zip"
+          mkdir -p "$PACK"
+          cp lean_ci/InsacermoFlat.lean "$PACK/InsacermoMathCoreV010.lean"
+          cp lean_ci/lean-toolchain "$PACK/lean-toolchain"
+          cp lean_ci/lakefile.toml "$PACK/lakefile.toml"
+          cp lean_ci/apply_mathcore_v010.py "$PACK/apply_mathcore_v010.py"
+          cp lean_ci/InsacermoFlatV09.lean.gz "$PACK/InsacermoFlatV09.lean.gz"
+          cp .github/workflows/insacermo-lean-v08.yml "$PACK/kernel-verification-workflow.yml"
+          cat > "$PACK/KERNEL_CERTIFICATE.txt" <<EOF
+          INSACERMO V0.10 MATH CORE — LEAN KERNEL VERIFIED
+
+          Verification date: 2026-09-10
+          Repository: benblak/Memguard
+          Branch: insacermo-core-v08-build-test
+          GitHub Actions run: ${GITHUB_RUN_ID}
+          Verified commit: ${GITHUB_SHA}
+          Lean toolchain: leanprover/lean4:v4.32.1
+          mathlib tag: v4.32.1
+          mathlib resolved revision: 520045ab14e26149ee970e2e617ca04b09bde5d6
+          Kernel command: lake env lean InsacermoFlat.lean
+          Kernel result: SUCCESS / exit code 0
+          Proof-placeholder gate: PASSED — no sorry/admit in verified source
+
+          Verified mathematical scope:
+          - Core
+          - Ternary
+          - Beta
+          - BetaTernary
+          - Obstruction
+          - HigherOrder
+          - MemoryCapability
+          - FrontierMinima
+
+          Excluded from this certificate:
+          - Compiler
+          - CompilerTernary
+          - ExecutableCompiler
+          - ExecutableTernary
+          - OperationalSemantics
+          - ExecutableSoundness
+
+          This certificate establishes kernel acceptance of the formal derivations in the stated scope. It does not by itself establish empirical validity, scientific novelty, or universality of INSACERMO.
+          EOF
+          cat > "$PACK/README.md" <<EOF
+          # INSACERMO Math Core V0.10 — Kernel Verified
+
+          This archive preserves the exact Lean Math Core source presented to Lean in GitHub Actions run ${GITHUB_RUN_ID}, together with the pinned Lean/Lake environment, the source transformer, the pre-transform V0.9 source, the CI workflow, a verification certificate, and SHA-256 checksums.
+
+          ## Reproduce
+
+          In this directory, with network access for mathlib dependencies:
+
+          ```bash
+          lake update
+          lake exe cache get
+          lake env lean InsacermoMathCoreV010.lean
+          ```
+
+          The certified scope contains the mathematical modules Core, Ternary, Beta, BetaTernary, Obstruction, HigherOrder, MemoryCapability and FrontierMinima. Executable/compiler modules are intentionally outside V0.10 certification.
+          EOF
+          (cd "$PACK" && sha256sum * > SHA256SUMS.txt)
+          zip -qr "$PACK.zip" "$PACK"
+          sha256sum "$PACK.zip" > "$PACK.zip.sha256"
+          cat "$PACK.zip.sha256"
+      - name: Upload kernel-verified proof pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_MATH_CORE_V0_10_KERNEL_VERIFIED
+          path: |
+            INSACERMO_MATH_CORE_V0_10_KERNEL_VERIFIED.zip
+            INSACERMO_MATH_CORE_V0_10_KERNEL_VERIFIED.zip.sha256
+          if-no-files-found: error
+          retention-days: 90
