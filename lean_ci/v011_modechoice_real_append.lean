@@ -153,24 +153,33 @@ example : (compile mcRepairInput).strategy = some MCPlan.universalOne := by nati
 example : (compile mcRefuseInput).label = ExecLabel.refuse := by native_decide
 example : (compile mcIncompleteInput).label = ExecLabel.incomplete := by native_decide
 
+/-- Small executable powerset used only by this integration audit. -/
+def mcPowerset {α : Type*} : List α → List (List α)
+  | [] => [[]]
+  | x :: xs =>
+      let ps := mcPowerset xs
+      ps ++ ps.map (fun ys => x :: ys)
+
 def mcIsAdmissible (B : List MCWorld) : Bool :=
   (findAct? mcSystem mcAvailable 1 B).isSome
 
+def mcAllSubsets : List (List MCWorld) := mcPowerset mcAllWorlds
+
 def mcAdmissibleCount : Nat :=
-  (mcAllWorlds.powerset.filter mcIsAdmissible).length
+  (mcAllSubsets.filter mcIsAdmissible).length
 
 def mcIsMinimalObstruction (B : List MCWorld) : Bool :=
   (! mcIsAdmissible B) && B.all (fun x => mcIsAdmissible (B.erase x))
 
 def mcMinimalObstructions : List (List MCWorld) :=
-  mcAllWorlds.powerset.filter mcIsMinimalObstruction
+  mcAllSubsets.filter mcIsMinimalObstruction
 
-#eval mcAllWorlds.powerset.length
+#eval mcAllSubsets.length
 #eval mcAdmissibleCount
 #eval mcMinimalObstructions.length
 #eval mcMinimalObstructions
 
-example : mcAllWorlds.powerset.length = 16384 := by native_decide
+example : mcAllSubsets.length = 16384 := by native_decide
 example : mcAdmissibleCount = 4288 := by native_decide
 example : mcMinimalObstructions.length = 12 := by native_decide
 example : mcMinimalObstructions.all (fun B => B.length == 2) = true := by native_decide
