@@ -52,7 +52,7 @@ def hivWitnessSystem : ContractSystem HIVWitnessWorld HIVWitnessPlan where
 instance hivWitnessGoodDecidable : DecidableRel hivWitnessSystem.good := by
   intro s p
   change Decidable (hivWitnessGood s p)
-  cases s <;> cases p <;> simp [hivWitnessGood]
+  cases s <;> cases p <;> infer_instance
 
 -- Both archived witness rows carry exactly the same observed SMILES string.
 def hivObservedStructure : HIVWitnessWorld → Nat
