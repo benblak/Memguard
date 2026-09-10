@@ -36,6 +36,7 @@ jobs:
           cat InsacermoV011StageC.lean > InsacermoV011StageD.lean
           awk 'BEGIN{p=0} /-- ===== ExecutableSoundness.lean =====/{p=1} p{print}' full.lean >> InsacermoV011StageD.lean
           python3 apply_v011_staged.py
+          python3 apply_v011_staged_terminal_fix.py
           wc -l InsacermoV011StageD.lean
       - name: Install Lean 4.32.1
         run: |
