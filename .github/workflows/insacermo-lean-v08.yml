@@ -1,4 +1,4 @@
-name: INSACERMO V0.11 HIV archive conflict bridge
+name: INSACERMO V0.11 minimal four-way demo
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize certified V0.11 engine plus HIV archive witness bridge
+      - name: Materialize certified V0.11 engine plus minimal demo
         run: |
           set -euo pipefail
           cd lean_ci
@@ -33,52 +33,45 @@ jobs:
           awk 'BEGIN{p=0} /-- ===== ExecutableSoundness.lean =====/{p=1} p{print}' full.lean >> InsacermoV011StageD.lean
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
-          cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
-          python3 generate_v011_hiv_structure_conflict.py
-          cat INSACERMO_CORE_ENGINE_V011.lean v011_hiv_structure_conflict_bridge.lean > INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean
-          wc -l INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean
+          cat InsacermoV011StageD.lean v011_fourway_minimal_append.lean > INSACERMO_V011_FOURWAY_MINIMAL.lean
+          wc -l INSACERMO_V011_FOURWAY_MINIMAL.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Execute and kernel-check HIV REFUSE witness bridge
+      - name: Execute and kernel-check four-way demo
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean | tee V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt
-      - name: Verify HIV suite has no placeholders
+          lake env lean INSACERMO_V011_FOURWAY_MINIMAL.lean | tee V011_FOURWAY_MINIMAL_OUTPUT.txt
+      - name: Verify no placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_V011_FOURWAY_MINIMAL.lean; then exit 1; fi
           echo 'No sorry/admit placeholders found.'
-      - name: Build HIV evidence note
+      - name: Build evidence note
         working-directory: lean_ci
         run: |
           printf '%s\n' \
-            'INSACERMO V0.11 — HIV ARCHIVE STRUCTURE-CONFLICT REFUSE BRIDGE' \
+            'INSACERMO V0.11 — MINIMAL FOUR-WAY DEMONSTRATION' \
             '' \
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
-            'Source audit: archived HIV.txt, mechanical exhaustive audit outside Lean.' \
-            'Archived raw SHA256: d0e985c9c1191c77958ac52a278338c241858394fd3b299f56113329e1fc935c.' \
-            'Rows: 41913; exact-SMILES conflict groups: 28; rows involved: 76; opposite-label pairs: 54.' \
-            'Formal input: deterministic two-row witness extracted from that archived audit.' \
-            'Expected V0.11 decision: REFUSE under the listed structure-only probe.' \
-            '' \
-            'Boundary: Lean proves the induced witness contract, not the 41913-row CSV audit. No biological impossibility or clinical claim; searchComplete is relative to the listed probe set.' \
-            > HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt
-          sha256sum generate_v011_hiv_structure_conflict.py v011_hiv_structure_conflict_bridge.lean INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt HIV_STRUCTURE_CONFLICT_RECEIPT.txt HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt > HIV_STRUCTURE_CONFLICT_SHA256SUMS.txt
-      - name: Upload HIV evidence
+            'Same executable compiler; four finite micro-contracts from the same ternary family.' \
+            'Expected labels in order: ACT, PROBE, REPAIR, REFUSE.' \
+            'Each output is accompanied by an OperationalSound proof.' \
+            'No empirical or novelty claim is encoded by this formal demo.' \
+            > FOURWAY_MINIMAL_CERTIFICATE.txt
+          sha256sum v011_fourway_minimal_append.lean INSACERMO_V011_FOURWAY_MINIMAL.lean V011_FOURWAY_MINIMAL_OUTPUT.txt FOURWAY_MINIMAL_CERTIFICATE.txt > FOURWAY_MINIMAL_SHA256SUMS.txt
+      - name: Upload evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_V011_HIV_ARCHIVE_STRUCTURE_CONFLICT_BRIDGE
+          name: INSACERMO_V011_FOURWAY_MINIMAL_DEMO
           path: |
-            lean_ci/V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt
-            lean_ci/v011_hiv_structure_conflict_bridge.lean
-            lean_ci/generate_v011_hiv_structure_conflict.py
-            lean_ci/HIV_STRUCTURE_CONFLICT_RECEIPT.txt
-            lean_ci/HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt
-            lean_ci/HIV_STRUCTURE_CONFLICT_SHA256SUMS.txt
+            lean_ci/V011_FOURWAY_MINIMAL_OUTPUT.txt
+            lean_ci/v011_fourway_minimal_append.lean
+            lean_ci/FOURWAY_MINIMAL_CERTIFICATE.txt
+            lean_ci/FOURWAY_MINIMAL_SHA256SUMS.txt
           if-no-files-found: error
