@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize and patch Math Core
+      - name: Materialize and transform Math Core
         run: |
           cd lean_ci
           gzip -dc InsacermoFlatV09.lean.gz > full.lean
           awk '/-- ===== Compiler.lean =====/{exit} {print}' full.lean > InsacermoFlat.lean
-          patch InsacermoFlat.lean < mathcore_v010.patch
+          python3 apply_mathcore_v010.py
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
