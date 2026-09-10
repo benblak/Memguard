@@ -28,9 +28,10 @@ jobs:
           python3 apply_v011_stagea.py
           mv InsacermoV011StageA.lean semantic_stagea_verified.lean
 
-          # Add only Stage B: ExecutableCompiler + ExecutableTernary.
+          # Add only Stage B and make the search path genuinely executable.
           cat semantic_stagea_verified.lean > InsacermoV011StageB.lean
           awk 'BEGIN{p=0} /-- ===== ExecutableCompiler.lean =====/{p=1} /-- ===== OperationalSemantics.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageB.lean
+          python3 apply_v011_stageb.py
 
           echo 'Stage B source lines:'
           wc -l InsacermoV011StageB.lean
