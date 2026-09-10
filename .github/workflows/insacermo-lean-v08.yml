@@ -1,4 +1,4 @@
-name: INSACERMO V0.11 WDBC PROBE bridge
+name: INSACERMO V0.11 HIV structure-conflict bridge
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize certified V0.11 engine plus WDBC bridge
+      - name: Materialize certified V0.11 engine plus HIV bridge
         run: |
           set -euo pipefail
           cd lean_ci
@@ -34,53 +34,52 @@ jobs:
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
           cp InsacermoV011StageD.lean INSACERMO_CORE_ENGINE_V011.lean
-          python3 generate_v011_wdbc_probe.py
-          cat INSACERMO_CORE_ENGINE_V011.lean v011_wdbc_probe_bridge.lean > INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean
-          wc -l INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean
+          python3 generate_v011_hiv_structure_conflict.py
+          cat INSACERMO_CORE_ENGINE_V011.lean v011_hiv_structure_conflict_bridge.lean > INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean
+          wc -l INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Execute and kernel-check WDBC PROBE bridge
+      - name: Execute and kernel-check HIV REFUSE bridge
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean | tee V011_WDBC_PROBE_OUTPUT.txt
-      - name: Verify WDBC suite has no placeholders
+          lake env lean INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean | tee V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt
+      - name: Verify HIV suite has no placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean; then exit 1; fi
           echo 'No sorry/admit placeholders found.'
-      - name: Build WDBC evidence note
+      - name: Build HIV evidence note
         working-directory: lean_ci
         run: |
           printf '%s\n' \
-            'INSACERMO V0.11 — WDBC PROBE BRIDGE' \
+            'INSACERMO V0.11 — HIV STRUCTURE-CONFLICT REFUSE BRIDGE' \
             '' \
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
-            'Source: official UCI WDBC archive downloaded during CI.' \
-            'Rows: 569; malignant=212; benign=357.' \
-            'Probe contract: six selected features discretized by quartiles.' \
-            'Expected structural result: six-measure signature gives 462 observed class-pure fibers.' \
-            'Drop-one unresolved opposite-class pairs: 15,16,9,6,8,16.' \
-            'Expected V0.11 decisions: REFUSE without probe; PROBE candidate index 6 with full six-measure signature.' \
+            'Source: public DeepChem/MoleculeNet HIV.csv downloaded during CI.' \
+            'Rows: 41913.' \
+            'Exact-SMILES groups with both labels: 28.' \
+            'Rows involved: 76.' \
+            'Opposite-label pairs within identical exact SMILES: 54.' \
+            'Expected V0.11 decision on deterministic witness: REFUSE.' \
             '' \
-            'Boundary: benchmark structural validation only, not clinical diagnosis or medical-device validation.' \
-            > WDBC_PROBE_CERTIFICATE.txt
-          sha256sum generate_v011_wdbc_probe.py v011_wdbc_probe_bridge.lean WDBC_PROBE_569_BINNED.csv INSACERMO_CORE_ENGINE_V011_WDBC_PROBE.lean V011_WDBC_PROBE_OUTPUT.txt WDBC_GENERATOR_RECEIPT.txt WDBC_PROBE_CERTIFICATE.txt > WDBC_PROBE_SHA256SUMS.txt
-      - name: Upload WDBC evidence
+            'Boundary: dataset/contract observation conflict only. No claim that HIV activity is biologically impossible to resolve, and no claim that all possible experimental probes are exhausted.' \
+            > HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt
+          sha256sum generate_v011_hiv_structure_conflict.py v011_hiv_structure_conflict_bridge.lean INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt HIV_STRUCTURE_CONFLICT_RECEIPT.txt HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt > HIV_STRUCTURE_CONFLICT_SHA256SUMS.txt
+      - name: Upload HIV evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_V011_WDBC_PROBE_BRIDGE
+          name: INSACERMO_V011_HIV_STRUCTURE_CONFLICT_BRIDGE
           path: |
-            lean_ci/V011_WDBC_PROBE_OUTPUT.txt
-            lean_ci/v011_wdbc_probe_bridge.lean
-            lean_ci/generate_v011_wdbc_probe.py
-            lean_ci/WDBC_PROBE_569_BINNED.csv
-            lean_ci/WDBC_GENERATOR_RECEIPT.txt
-            lean_ci/WDBC_PROBE_CERTIFICATE.txt
-            lean_ci/WDBC_PROBE_SHA256SUMS.txt
+            lean_ci/V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt
+            lean_ci/v011_hiv_structure_conflict_bridge.lean
+            lean_ci/generate_v011_hiv_structure_conflict.py
+            lean_ci/HIV_STRUCTURE_CONFLICT_RECEIPT.txt
+            lean_ci/HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt
+            lean_ci/HIV_STRUCTURE_CONFLICT_SHA256SUMS.txt
           if-no-files-found: error
