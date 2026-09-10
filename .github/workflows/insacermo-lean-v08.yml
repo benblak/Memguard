@@ -53,3 +53,92 @@ jobs:
             exit 1
           fi
           echo 'No sorry/admit placeholders found.'
+      - name: Build kernel verification archive
+        run: |
+          set -euo pipefail
+          ROOT="$PWD"
+          cd lean_ci
+          PACK=INSACERMO_V011_STAGEB_KERNEL_VERIFIED
+          rm -rf "$PACK" "$PACK.zip"
+          mkdir -p "$PACK"
+
+          cp InsacermoV011StageB.lean "$PACK/"
+          cp semantic_stagea_verified.lean "$PACK/"
+          cp mathcore_v010.lean "$PACK/"
+          cp InsacermoFlatV09.lean.gz "$PACK/"
+          cp apply_mathcore_v010.py "$PACK/"
+          cp apply_v011_stagea.py "$PACK/"
+          cp apply_v011_stageb.py "$PACK/"
+          cp lean-toolchain "$PACK/"
+          cp lakefile.toml "$PACK/"
+          cp "$ROOT/.github/workflows/insacermo-lean-v08.yml" "$PACK/kernel-verification-workflow.yml"
+
+          LEAN_VERSION=$(lean --version | head -1)
+          MATHLIB_REV=$(git -C .lake/packages/mathlib rev-parse HEAD)
+          SOURCE_SHA=$(sha256sum InsacermoV011StageB.lean | awk '{print $1}')
+
+          cat > "$PACK/KERNEL_CERTIFICATE.txt" <<EOF
+INSACERMO V0.11 STAGE B — LEAN KERNEL VERIFIED
+
+Scope verified:
+- V0.10 Math Core
+- Compiler
+- CompilerTernary
+- ExecutableCompiler
+- ExecutableTernary
+
+Not yet included in this certificate:
+- OperationalSemantics
+- ExecutableSoundness
+
+GitHub repository: benblak/Memguard
+Branch: ${GITHUB_REF_NAME}
+Commit: ${GITHUB_SHA}
+Workflow run: ${GITHUB_RUN_ID}
+Workflow job: build
+Kernel command: lake env lean InsacermoV011StageB.lean
+Placeholder gate: no sorry/admit
+Lean: ${LEAN_VERSION}
+mathlib revision: ${MATHLIB_REV}
+Verified source SHA256: ${SOURCE_SHA}
+
+Truth boundary:
+This certificate records Lean kernel acceptance of the stated formal scope.
+It does not by itself establish empirical validity, universality, novelty,
+or real-world correctness. Full V0.11 requires OperationalSemantics and
+ExecutableSoundness to be kernel-verified as well.
+EOF
+
+          cat > "$PACK/README.md" <<'EOF'
+# INSACERMO V0.11 Stage B — Kernel-Verified Proof Pack
+
+This archive freezes the exact Lean source accepted by the CI kernel check for V0.11 Stage B.
+
+Verified layers:
+- V0.10 Math Core
+- Compiler + CompilerTernary
+- ExecutableCompiler + ExecutableTernary
+
+The executable layer uses ordered lists for finite search so witness selection is genuinely computable and deterministic. The semantic existence question is not weakened by this representation choice.
+
+Reproduction outline:
+1. install the pinned Lean toolchain from `lean-toolchain`;
+2. resolve dependencies with `lake update`;
+3. run `lake env lean InsacermoV011StageB.lean`;
+4. confirm no `sorry` or `admit` occurs.
+
+See `KERNEL_CERTIFICATE.txt` for the exact run and scope boundary.
+EOF
+
+          (cd "$PACK" && sha256sum * > SHA256SUMS.txt)
+          zip -qr "$PACK.zip" "$PACK"
+          sha256sum "$PACK.zip" > "$PACK.zip.sha256"
+      - name: Upload kernel proof artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_V011_STAGEB_KERNEL_VERIFIED
+          path: |
+            lean_ci/INSACERMO_V011_STAGEB_KERNEL_VERIFIED.zip
+            lean_ci/INSACERMO_V011_STAGEB_KERNEL_VERIFIED.zip.sha256
+          if-no-files-found: error
+          compression-level: 0
