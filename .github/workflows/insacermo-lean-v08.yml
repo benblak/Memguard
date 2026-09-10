@@ -1,4 +1,4 @@
-name: INSACERMO V0.11 HIV structure-conflict bridge
+name: INSACERMO V0.11 HIV archive conflict bridge
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize certified V0.11 engine plus HIV bridge
+      - name: Materialize certified V0.11 engine plus HIV archive witness bridge
         run: |
           set -euo pipefail
           cd lean_ci
@@ -41,7 +41,7 @@ jobs:
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Execute and kernel-check HIV REFUSE bridge
+      - name: Execute and kernel-check HIV REFUSE witness bridge
         working-directory: lean_ci
         run: |
           set -euo pipefail
@@ -57,24 +57,23 @@ jobs:
         working-directory: lean_ci
         run: |
           printf '%s\n' \
-            'INSACERMO V0.11 — HIV STRUCTURE-CONFLICT REFUSE BRIDGE' \
+            'INSACERMO V0.11 — HIV ARCHIVE STRUCTURE-CONFLICT REFUSE BRIDGE' \
             '' \
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
-            'Source: public DeepChem/MoleculeNet HIV.csv downloaded during CI.' \
-            'Rows: 41913.' \
-            'Exact-SMILES groups with both labels: 28.' \
-            'Rows involved: 76.' \
-            'Opposite-label pairs within identical exact SMILES: 54.' \
-            'Expected V0.11 decision on deterministic witness: REFUSE.' \
+            'Source audit: archived HIV.txt, mechanical exhaustive audit outside Lean.' \
+            'Archived raw SHA256: d0e985c9c1191c77958ac52a278338c241858394fd3b299f56113329e1fc935c.' \
+            'Rows: 41913; exact-SMILES conflict groups: 28; rows involved: 76; opposite-label pairs: 54.' \
+            'Formal input: deterministic two-row witness extracted from that archived audit.' \
+            'Expected V0.11 decision: REFUSE under the listed structure-only probe.' \
             '' \
-            'Boundary: dataset/contract observation conflict only. No claim that HIV activity is biologically impossible to resolve, and no claim that all possible experimental probes are exhausted.' \
+            'Boundary: Lean proves the induced witness contract, not the 41913-row CSV audit. No biological impossibility or clinical claim; searchComplete is relative to the listed probe set.' \
             > HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt
           sha256sum generate_v011_hiv_structure_conflict.py v011_hiv_structure_conflict_bridge.lean INSACERMO_CORE_ENGINE_V011_HIV_STRUCTURE_CONFLICT.lean V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt HIV_STRUCTURE_CONFLICT_RECEIPT.txt HIV_STRUCTURE_CONFLICT_CERTIFICATE.txt > HIV_STRUCTURE_CONFLICT_SHA256SUMS.txt
       - name: Upload HIV evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_V011_HIV_STRUCTURE_CONFLICT_BRIDGE
+          name: INSACERMO_V011_HIV_ARCHIVE_STRUCTURE_CONFLICT_BRIDGE
           path: |
             lean_ci/V011_HIV_STRUCTURE_CONFLICT_OUTPUT.txt
             lean_ci/v011_hiv_structure_conflict_bridge.lean
