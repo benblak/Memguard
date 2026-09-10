@@ -65,7 +65,6 @@ repls = [
       intro s hs
       exact hB s (hAB hs)
     rw [if_pos hA, if_pos hB]
-    exact le_rfl
   · rw [if_neg hB]
     exact le_top
 """),
@@ -74,14 +73,22 @@ repls = [
   exact beta_triple_not_le_one
 """),
 ("""    change h s = z₁
+    apply Fin.ext
     have hc : Fin.castLE hkk (h s) = Fin.castLE hkk (h s₀) := by
+      calc
+        Fin.castLE hkk (h s) = z₂ := hs
+        _ = Fin.castLE hkk (h s₀) := hs₀.symm
+    exact congrArg Fin.val hc
 """, """    change h s = z₁
     apply Fin.ext
     change (h s).val = (h s₀).val
     have hc : Fin.castLE hkk (h s) = Fin.castLE hkk (h s₀) := by
-"""),
-("""    exact Fin.castLE_injective hkk hc
-""", """    exact congrArg Fin.val hc
+      calc
+        Fin.castLE hkk (h s) = z₂ := hs
+        _ = Fin.castLE hkk (h s₀) := hs₀.symm
+    have hvals : (Fin.castLE hkk (h s)).val = (Fin.castLE hkk (h s₀)).val :=
+      congrArg (fun x : Fin k₂ => x.val) hc
+    exact hvals
 """),
 ("""    intro t ht
     simpa using ht
