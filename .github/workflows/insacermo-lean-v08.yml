@@ -1,4 +1,4 @@
-name: INSACERMO Lean V0.11 Stage A semantic compiler
+name: INSACERMO Lean V0.11 Stage B executable compiler
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,34 +10,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize V0.10 Math Core plus semantic compiler
+      - name: Materialize verified core plus semantic and executable compiler
         run: |
           set -euo pipefail
           cd lean_ci
           gzip -dc InsacermoFlatV09.lean.gz > full.lean
-          awk '/-- ===== Compiler.lean =====/{exit} {print}' full.lean > InsacermoV011StageA.lean
-          cp InsacermoV011StageA.lean InsacermoFlat.lean
+
+          # Rebuild the already-verified V0.10 Math Core.
+          awk '/-- ===== Compiler.lean =====/{exit} {print}' full.lean > InsacermoFlat.lean
           python3 apply_mathcore_v010.py
           mv InsacermoFlat.lean mathcore_v010.lean
-          cat mathcore_v010.lean > InsacermoV011StageA.lean
-          awk 'BEGIN{p=0} /-- ===== Compiler.lean =====/{p=1} /-- ===== ExecutableCompiler.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageA.lean
+
+          # Rebuild the already-verified V0.11 Stage A semantic compiler.
+          cat mathcore_v010.lean > InsacermoV011StageB.lean
+          awk 'BEGIN{p=0} /-- ===== Compiler.lean =====/{p=1} /-- ===== ExecutableCompiler.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageB.lean
+          cp InsacermoV011StageB.lean InsacermoV011StageA.lean
           python3 apply_v011_stagea.py
-          echo '===== V0.11 diagnostic source 1100-1160 ====='
-          nl -ba InsacermoV011StageA.lean | sed -n '1100,1160p'
+          mv InsacermoV011StageA.lean semantic_stagea_verified.lean
+
+          # Add only Stage B: ExecutableCompiler + ExecutableTernary.
+          cat semantic_stagea_verified.lean > InsacermoV011StageB.lean
+          awk 'BEGIN{p=0} /-- ===== ExecutableCompiler.lean =====/{p=1} /-- ===== OperationalSemantics.lean =====/{exit} p{print}' full.lean >> InsacermoV011StageB.lean
+
+          echo 'Stage B source lines:'
+          wc -l InsacermoV011StageB.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Kernel check V0.11 Stage A
+      - name: Kernel check V0.11 Stage B
         working-directory: lean_ci
         run: |
           lake update
           lake exe cache get
-          lake env lean InsacermoV011StageA.lean
+          lake env lean InsacermoV011StageB.lean
       - name: Verify no proof placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' InsacermoV011StageA.lean; then
+          if grep -nE '\b(sorry|admit)\b' InsacermoV011StageB.lean; then
             echo 'Forbidden proof placeholder found.'
             exit 1
           fi
