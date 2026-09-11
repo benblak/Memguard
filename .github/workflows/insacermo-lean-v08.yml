@@ -1,4 +1,4 @@
-name: INSACERMO V0.11 minimal four-way demo
+name: INSACERMO V0.11 capability-forgetting reversal
 on:
   push:
     branches: [insacermo-core-v08-build-test]
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Materialize certified V0.11 engine plus minimal demo
+      - name: Materialize certified V0.11 engine plus reversal witness
         run: |
           set -euo pipefail
           cd lean_ci
@@ -33,45 +33,46 @@ jobs:
           awk 'BEGIN{p=0} /-- ===== ExecutableSoundness.lean =====/{p=1} p{print}' full.lean >> InsacermoV011StageD.lean
           python3 apply_v011_staged.py
           python3 apply_v011_staged_terminal_fix.py
-          cat InsacermoV011StageD.lean v011_fourway_minimal_append.lean > INSACERMO_V011_FOURWAY_MINIMAL.lean
-          wc -l INSACERMO_V011_FOURWAY_MINIMAL.lean
+          cat InsacermoV011StageD.lean v011_capability_forgetting_reversal.lean > INSACERMO_V011_CAPABILITY_FORGETTING_REVERSAL.lean
+          wc -l INSACERMO_V011_CAPABILITY_FORGETTING_REVERSAL.lean
       - name: Install Lean 4.32.1
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Execute and kernel-check four-way demo
+      - name: Execute and kernel-check reversal witness
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean INSACERMO_V011_FOURWAY_MINIMAL.lean | tee V011_FOURWAY_MINIMAL_OUTPUT.txt
+          lake env lean INSACERMO_V011_CAPABILITY_FORGETTING_REVERSAL.lean | tee V011_CAPABILITY_FORGETTING_REVERSAL_OUTPUT.txt
       - name: Verify no placeholders
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' INSACERMO_V011_FOURWAY_MINIMAL.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' INSACERMO_V011_CAPABILITY_FORGETTING_REVERSAL.lean; then exit 1; fi
           echo 'No sorry/admit placeholders found.'
       - name: Build evidence note
         working-directory: lean_ci
         run: |
           printf '%s\n' \
-            'INSACERMO V0.11 — MINIMAL FOUR-WAY DEMONSTRATION' \
+            'INSACERMO V0.11 — CAPABILITY-FORGETTING REVERSAL' \
             '' \
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
-            'Same executable compiler; four finite micro-contracts from the same ternary family.' \
-            'Expected labels in order: ACT, PROBE, REPAIR, REFUSE.' \
-            'Each output is accompanied by an OperationalSound proof.' \
-            'No empirical or novelty claim is encoded by this formal demo.' \
-            > FOURWAY_MINIMAL_CERTIFICATE.txt
-          sha256sum v011_fourway_minimal_append.lean INSACERMO_V011_FOURWAY_MINIMAL.lean V011_FOURWAY_MINIMAL_OUTPUT.txt FOURWAY_MINIMAL_CERTIFICATE.txt > FOURWAY_MINIMAL_SHA256SUMS.txt
+            'Same ternary system and same coarse ambiguity before/after capability expansion.' \
+            'No new observation is acquired between REFUSE and ACT.' \
+            'Expected labels in order: PRESERVE, REFUSE, ACT.' \
+            'Interpretation: a capability expansion alone can make a previously unsafe/coarse information state actionable.' \
+            'Boundary: this is a formal finite witness, not by itself a universality or historical novelty proof.' \
+            > CAPABILITY_FORGETTING_REVERSAL_CERTIFICATE.txt
+          sha256sum v011_capability_forgetting_reversal.lean INSACERMO_V011_CAPABILITY_FORGETTING_REVERSAL.lean V011_CAPABILITY_FORGETTING_REVERSAL_OUTPUT.txt CAPABILITY_FORGETTING_REVERSAL_CERTIFICATE.txt > CAPABILITY_FORGETTING_REVERSAL_SHA256SUMS.txt
       - name: Upload evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_V011_FOURWAY_MINIMAL_DEMO
+          name: INSACERMO_V011_CAPABILITY_FORGETTING_REVERSAL
           path: |
-            lean_ci/V011_FOURWAY_MINIMAL_OUTPUT.txt
-            lean_ci/v011_fourway_minimal_append.lean
-            lean_ci/FOURWAY_MINIMAL_CERTIFICATE.txt
-            lean_ci/FOURWAY_MINIMAL_SHA256SUMS.txt
+            lean_ci/V011_CAPABILITY_FORGETTING_REVERSAL_OUTPUT.txt
+            lean_ci/v011_capability_forgetting_reversal.lean
+            lean_ci/CAPABILITY_FORGETTING_REVERSAL_CERTIFICATE.txt
+            lean_ci/CAPABILITY_FORGETTING_REVERSAL_SHA256SUMS.txt
           if-no-files-found: error
