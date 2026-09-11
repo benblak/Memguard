@@ -4,7 +4,7 @@
 namespace Insacermo
 
 /-- Predicate-level representation safety.  For every true state, the whole
-    representation fiber containing that state must admit one available plan. -/
+    representation fiber containing that state must have one available plan. -/
 def CapRepSafe {S Plan Code : Type*}
     (cap : Plan → Prop) (good : S → Plan → Prop) (h : S → Code) : Prop :=
   ∀ s : S, ∃ π : Plan, cap π ∧ ∀ t : S, h t = h s → good t π
