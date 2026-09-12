@@ -32,13 +32,10 @@ open Set
 
 abbrev Hidden (k : Nat) := Fin k → Bool
 
-/-- Current hidden bit at a nonterminal stage. -/
 def head {k : Nat} (w : Hidden (k + 1)) : Bool := w 0
 
-/-- Hidden future after completing the current physical stage. -/
 def tail {k : Nat} (w : Hidden (k + 1)) : Hidden k := fun i => w i.succ
 
-/-- Build a world from a current bit and a future tail. -/
 def prepend {k : Nat} (b : Bool) (t : Hidden k) : Hidden (k + 1) :=
   Fin.cases b t
 
@@ -51,14 +48,11 @@ def prepend {k : Nat} (b : Bool) (t : Hidden k) : Hidden (k + 1) :=
   funext i
   rfl
 
-/-- Before probing the current stage, every remaining hidden vector is possible. -/
 def unresolvedBelief (k : Nat) : Set (Hidden k) := Set.univ
 
-/-- Posterior after observing the current head bit. -/
 def posteriorBelief (k : Nat) (b : Bool) : Set (Hidden (k + 1)) :=
   {w | head w = b}
 
-/-- A repair bit is common-safe on a belief iff it matches the current bit in every world. -/
 def CommonSafeRepair {k : Nat} (F : Set (Hidden (k + 1))) : Prop :=
   ∃ r : Bool, ∀ w, w ∈ F → head w = r
 
@@ -87,7 +81,6 @@ theorem posterior_unique_repair (k : Nat) (b r : Bool)
   have hz : head (prepend b z) = r := h (prepend b z) (by simp [posteriorBelief])
   simpa using hz.symm
 
-/-- Tails reachable after a correctly matched repair. -/
 def afterRepairBelief (k : Nat) (b : Bool) : Set (Hidden k) :=
   tail '' posteriorBelief k b
 
@@ -121,25 +114,18 @@ inductive Role
 
 open Role
 
-/-- `informed=false` represents `unresolvedBelief remaining`.
-`informed=true` represents either posterior after observing the current head bit.
-A repeated probe while informed is allowed and simply wastes one unit of cost. -/
 structure PlannerState where
   remaining : Nat
   informed : Bool
   deriving DecidableEq, Repr
 
-/-- Role dynamics justified by the concrete belief semantics above.
-Repairs are unsafe while unresolved.  Probes are always allowed at a nonterminal stage, including
-redundant repeated probes.  A safe matched repair closes one stage and exposes a fresh unresolved
-belief over the remaining tail. -/
+/-- Role dynamics justified by the concrete belief semantics above.  Redundant probes are legal. -/
 def step : PlannerState → Role → Option PlannerState
   | ⟨0, _⟩, _ => none
   | ⟨n + 1, _⟩, probe => some ⟨n + 1, true⟩
   | ⟨n + 1, false⟩, repair => none
   | ⟨n + 1, true⟩, repair => some ⟨n, false⟩
 
-/-- Execute a role trace. -/
 def run : PlannerState → List Role → Option PlannerState
   | s, [] => some s
   | s, a :: xs =>
@@ -150,14 +136,13 @@ def run : PlannerState → List Role → Option PlannerState
 def initial (k : Nat) : PlannerState := ⟨k, false⟩
 def goal : PlannerState := ⟨0, false⟩
 
-/-- Remaining unavoidable unit-cost work.  This will be a lower-bound potential. -/
+/-- Remaining unavoidable unit-cost work. -/
 def need : PlannerState → Nat
   | ⟨0, _⟩ => 0
   | ⟨n + 1, false⟩ => 2 * (n + 1)
   | ⟨n + 1, true⟩ => 2 * n + 1
 
-/-- Every legal one-step transition can reduce `need` by at most one.  A redundant repeated probe
-reduces it by zero. -/
+/-- Every legal one-step transition can reduce `need` by at most one. -/
 theorem need_le_succ_need_of_step {s s' : PlannerState} {a : Role}
     (h : step s a = some s') : need s ≤ need s' + 1 := by
   rcases s with ⟨n, info⟩
@@ -165,10 +150,25 @@ theorem need_le_succ_need_of_step {s s' : PlannerState} {a : Role}
   | zero =>
       simp [step] at h
   | succ n =>
-      cases info <;> cases a <;> simp [step] at h
-      all_goals subst s'
-      all_goals simp [need]
-      all_goals omega
+      cases info with
+      | false =>
+          cases a with
+          | probe =>
+              simp [step] at h
+              subst s'
+              simp [need]
+          | repair =>
+              simp [step] at h
+      | true =>
+          cases a with
+          | probe =>
+              simp [step] at h
+              subst s'
+              simp [need]
+          | repair =>
+              simp [step] at h
+              subst s'
+              cases n <;> simp [need] <;> omega
 
 /-- Any trace reaching the contract goal must pay at least the current potential. -/
 theorem need_le_length_of_winning_trace {s : PlannerState} {xs : List Role}
@@ -191,9 +191,8 @@ theorem need_le_length_of_winning_trace {s : PlannerState} {xs : List Role}
           omega
 
 @[simp] theorem need_initial (k : Nat) : need (initial k) = 2 * k := by
-  cases k <;> simp [need, initial]
+  cases k <;> rfl
 
-/-- The no-waste candidate. -/
 def canonical : Nat → List Role
   | 0 => []
   | k + 1 => probe :: repair :: canonical k
@@ -219,7 +218,6 @@ theorem winning_length_lower_bound (k : Nat) (xs : List Role)
   have hp := need_le_length_of_winning_trace h
   simpa using hp
 
-/-- Exact optimal cost predicate, avoiding any hidden choice of optimizer. -/
 def OptimalCost (k c : Nat) : Prop :=
   (∃ xs : List Role, run (initial k) xs = some goal ∧ xs.length = c) ∧
   (∀ xs : List Role, run (initial k) xs = some goal → c ≤ xs.length)
@@ -231,15 +229,16 @@ theorem optimal_cost_eq_two_mul (k : Nat) : OptimalCost k (2 * k) := by
   · intro xs h
     exact winning_length_lower_bound k xs h
 
-/-- Stronger statement: every optimal role trace is exactly (PROBE,REPAIR)^k.
-Repeated probes are legal, but equality in the lower bound leaves no room for them. -/
+/-- Every optimal role trace is exactly (PROBE,REPAIR)^k. -/
 theorem optimal_trace_eq_canonical (k : Nat) (xs : List Role)
     (hwin : run (initial k) xs = some goal)
     (hlen : xs.length = 2 * k) : xs = canonical k := by
   induction k generalizing xs with
   | zero =>
-      have hx : xs.length = 0 := by simpa using hlen
-      exact List.length_eq_zero.mp hx
+      cases xs with
+      | nil => rfl
+      | cons a ys =>
+          simp at hlen
   | succ k ih =>
       cases xs with
       | nil =>
@@ -251,7 +250,7 @@ theorem optimal_trace_eq_canonical (k : Nat) (xs : List Role)
           | probe =>
               cases ys with
               | nil =>
-                  simp at hlen
+                  omega
               | cons b zs =>
                   cases b with
                   | probe =>
@@ -259,10 +258,8 @@ theorem optimal_trace_eq_canonical (k : Nat) (xs : List Role)
                         simpa [run, initial, step] using hwin
                       have hlow := need_le_length_of_winning_trace hzwin
                       have hneed : need ⟨k + 1, true⟩ = 2 * k + 1 := by
-                        simp [need]
-                        omega
+                        rfl
                       have hlenz : zs.length = 2 * k := by
-                        simp at hlen
                         omega
                       rw [hneed] at hlow
                       omega
@@ -270,7 +267,6 @@ theorem optimal_trace_eq_canonical (k : Nat) (xs : List Role)
                       have hzwin : run (initial k) zs = some goal := by
                         simpa [run, initial, step] using hwin
                       have hlenz : zs.length = 2 * k := by
-                        simp at hlen
                         omega
                       have hz : zs = canonical k := ih zs hzwin hlenz
                       simp [canonical, hz]
@@ -281,17 +277,28 @@ def roleChanges : List Role → Nat
   | [_] => 0
   | a :: b :: xs => (if a = b then 0 else 1) + roleChanges (b :: xs)
 
-/-- Canonical optimal traces have the maximal possible change at every boundary. -/
+/-- Prefixing REPAIR to a nonempty canonical trace creates exactly one new role change. -/
+theorem role_changes_repair_cons_canonical (k : Nat) :
+    roleChanges (repair :: canonical k) =
+      if k = 0 then 0 else 1 + roleChanges (canonical k) := by
+  cases k with
+  | zero => simp [canonical, roleChanges]
+  | succ k => simp [canonical, roleChanges]
+
+/-- Canonical optimal traces change role at every boundary. -/
 theorem role_changes_canonical (k : Nat) :
     roleChanges (canonical k) = if k = 0 then 0 else 2 * k - 1 := by
   induction k with
   | zero => simp [canonical, roleChanges]
   | succ k ih =>
-      cases k with
-      | zero => simp [canonical, roleChanges]
-      | succ k =>
-          simp [canonical, roleChanges, ih]
-          omega
+      rw [show canonical (k + 1) = probe :: repair :: canonical k by rfl]
+      simp only [roleChanges]
+      simp [role_changes_repair_cons_canonical, ih]
+      by_cases hk : k = 0
+      · subst k
+        simp
+      · simp [hk]
+        omega
 
 /-- Interaction-depth theorem for optimal policies: A_k = 2k-1 when k>0. -/
 theorem optimal_trace_role_changes (k : Nat) (xs : List Role)
@@ -309,13 +316,17 @@ theorem unbounded_optimal_interaction_depth (K : Nat) :
         run (initial k) xs = some goal ∧
         xs.length = 2 * k ∧
         K < roleChanges xs := by
-  refine ⟨K + 1, by omega, canonical (K + 1), canonical_wins (K + 1), canonical_length (K + 1), ?_⟩
-  rw [role_changes_canonical]
-  simp
+  let k := K + 1
+  refine ⟨k, by dsimp [k]; omega, canonical k, canonical_wins k, canonical_length k, ?_⟩
+  have hc : roleChanges (canonical k) = 2 * k - 1 :=
+    optimal_trace_role_changes k (canonical k) (by dsimp [k]; omega)
+      (canonical_wins k) (canonical_length k)
+  rw [hc]
+  dsimp [k]
   omega
 
-/-- Consolidated theorem: the concrete semantic gadget recurs on hidden tails, while its induced
-optimal planner has value 2k and unbounded PROBE/REPAIR interaction depth. -/
+/-- Consolidated theorem: the semantic gadget recurs on hidden tails, while its induced optimal
+planner has value 2k. -/
 theorem hidden_vector_probe_repair_minimax (k : Nat) :
     (∀ n : Nat,
       (¬ CommonSafeRepair (unresolvedBelief (n + 1))) ∧
