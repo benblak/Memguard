@@ -1,0 +1,25 @@
+TemporalContractExtensionV1.lean:68:2: error: Type mismatch: After simplification, term
+  localSafe_dead
+ has type
+  True
+but is expected to have type
+  LocalSafe
+    (match start with
+    | State.start => State.dead
+    | s => s)
+TemporalContractExtensionV1.lean:77:4: error: Type mismatch: After simplification, term
+  futureSafe_start
+ has type
+  FutureSafe State.start
+but is expected to have type
+  FutureSafe start
+TemporalContractExtensionV1.lean:79:34: error: Type mismatch: After simplification, term
+  h
+ has type
+  FutureSafe
+    (match start with
+    | State.start => State.dead
+    | s => s)
+but is expected to have type
+  FutureSafe State.dead
+TemporalContractExtensionV1.lean:120:23: error(lean.unknownIdentifier): Unknown identifier `start`
