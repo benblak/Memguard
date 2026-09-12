@@ -55,7 +55,8 @@ def resolutionFirst (_k : Nat) : ResolutionPlan := .local
 /-- Exact local interaction depth inherited from the verified minimax kernel. -/
 theorem local_plan_depth_exact (k : Nat) (hk : 0 < k) :
     planDepth k .local = 2 * k - 1 := by
-  simp [planDepth, hidden_vector_exact_interaction_depth k hk]
+  unfold planDepth
+  exact hidden_vector_exact_interaction_depth k hk
 
 /-- The added global repair has exactly zero interaction depth. -/
 @[simp] theorem global_repair_depth_zero (k : Nat) :
@@ -75,17 +76,15 @@ theorem global_repair_cost_premium_one (k : Nat) :
 /-- Already at unit switch penalty, joint optimization reverses the cost-only choice for k>=2. -/
 theorem joint_objective_prefers_global_at_unit_penalty (k : Nat) (hk : 2 ≤ k) :
     objective k 1 .globalRepair < objective k 1 .local := by
-  rw [show objective k 1 .globalRepair = 2 * k + 1 by simp [objective, baseCost, planDepth]]
-  rw [show objective k 1 .local = 2 * k + (2 * k - 1) by
-    simp [objective, baseCost, planDepth, hidden_vector_exact_interaction_depth k (by omega)]]
+  have hdepth : planDepth k .local = 2 * k - 1 := local_plan_depth_exact k (by omega)
+  simp [objective, baseCost, planDepth, hdepth]
   omega
 
 /-- The stronger lambda=2 statement also holds for every nonzero k. -/
 theorem joint_objective_prefers_global_at_penalty_two (k : Nat) (hk : 0 < k) :
     objective k 2 .globalRepair < objective k 2 .local := by
-  rw [show objective k 2 .globalRepair = 2 * k + 1 by simp [objective, baseCost, planDepth]]
-  rw [show objective k 2 .local = 2 * k + 2 * (2 * k - 1) by
-    simp [objective, baseCost, planDepth, hidden_vector_exact_interaction_depth k hk]]
+  have hdepth : planDepth k .local = 2 * k - 1 := local_plan_depth_exact k hk
+  simp [objective, baseCost, planDepth, hdepth]
   omega
 
 /-- With only these two safe alternatives, the joint optimum at unit penalty is U for k>=2. -/
@@ -104,11 +103,10 @@ def decouplingRegretAtOne (k : Nat) : Nat :=
 /-- Exact unit-penalty regret formula: 2k-2 for k>=2. -/
 theorem decoupling_regret_at_one_exact (k : Nat) (hk : 2 ≤ k) :
     decouplingRegretAtOne k = 2 * k - 2 := by
+  have hdepth : planDepth k .local = 2 * k - 1 := local_plan_depth_exact k (by omega)
   unfold decouplingRegretAtOne resolutionFirst
   rw [joint_best_at_one_eq_global k hk]
-  rw [show objective k 1 .globalRepair = 2 * k + 1 by simp [objective, baseCost, planDepth]]
-  rw [show objective k 1 .local = 2 * k + (2 * k - 1) by
-    simp [objective, baseCost, planDepth, hidden_vector_exact_interaction_depth k (by omega)]]
+  simp [objective, baseCost, planDepth, hdepth]
   omega
 
 /-- Even with unit switch penalty and positive integer base costs, the additive loss of separating
@@ -136,9 +134,10 @@ lambda. -/
 theorem no_contract_independent_multiplicative_factor (B : Nat) :
     ∃ lambda : Nat,
       B * objective 1 lambda .globalRepair < objective 1 lambda (resolutionFirst 1) := by
+  have hdepth : planDepth 1 .local = 1 := by
+    simpa using local_plan_depth_exact 1 (by omega)
   refine ⟨3 * B + 2, ?_⟩
-  simp [objective, baseCost, planDepth, resolutionFirst, interactionDepth, canonical,
-    switchesFrom, jump, roleChanges]
+  simp [objective, baseCost, planDepth, resolutionFirst, hdepth]
   omega
 
 /-- The two plans are Pareto-incomparable in (base cost, interaction depth) for k>0. -/
