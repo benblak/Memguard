@@ -103,8 +103,8 @@ theorem joint_revocation_has_localized_cause
   | inr hold =>
       exact Or.inr ⟨hold.1, hold.2, hlostLate⟩
 
-/-- If no genuinely new obligation appears between horizons, then every new revocation is necessarily
-caused by loss of compensating capability on an already-contracted requirement. -/
+/-- If no genuinely new obligation appears between two horizons, then every new revocation is
+necessarily caused by loss of compensating capability on an already-contracted requirement. -/
 theorem pure_capability_loss_revocation
     (Win : State → Cap → Req → Prop)
     (Γ : Horizon → Set Req) (cap : Horizon → Cap)
@@ -120,24 +120,15 @@ theorem pure_capability_loss_revocation
       Win x (cap k) q ∧
       Win (d x) (cap h) q ∧
       ¬ Win (d x) (cap k) q := by
-  have hΓ : ContractMonotone Γ := by
-    intro a b hab
-    by_cases ha : a = h
-    · subst a
-      by_cases hb : b = k
-      · subst b
-        simpa [hsame]
-      · intro q hq
-        exact hq
-    · intro q hq
-      exact hq
-  rcases joint_revocation_has_localized_cause
-    Win Γ cap hΓ hcap hWin d x hhk hadmEarly hnotLate with
-    ⟨q, hqk, hxLate, hlostLate, hcause⟩
-  have hqh : q ∈ Γ h := by simpa [hsame] using hqk
-  cases hcause with
-  | inl hnew => exact False.elim (hnew hqh)
-  | inr hold => exact ⟨q, hqh, hxLate, hold.2.1, hlostLate⟩
+  rcases joint_not_admissible_has_witness Win Γ cap d x k hnotLate with
+    ⟨q, hqk, hxLate, hlostLate⟩
+  have hqh : q ∈ Γ h := by
+    rw [hsame]
+    exact hqk
+  have hcapkh : cap k ≤ cap h := hcap hhk
+  have hxEarly : Win x (cap h) q := hWin hcapkh hxLate
+  have hdEarly : Win (d x) (cap h) q := hadmEarly q hqh hxEarly
+  exact ⟨q, hqh, hxLate, hdEarly, hlostLate⟩
 
 end GenericJoint
 
