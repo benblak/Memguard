@@ -1,53 +1,60 @@
-JointResolutionCausalPlannerV1.lean:57:38: error: unsolved goals
-k : ℕ
-hk : 0 < k
-⊢ roleChanges (canonical k) = 2 * k - 1
-JointResolutionCausalPlannerV1.lean:58:19: warning: This simp argument is unused:
-  hidden_vector_exact_interaction_depth k hk
+JointResolutionCausalPlannerV1.lean:81:2: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  0 ≤ b ≤ 1
+  a ≥ 2
+  a ≥ 1
+where
+ a := ↑k
+ b := ↑(roleChanges (canonical k))
+JointResolutionCausalPlannerV1.lean:80:40: warning: This simp argument is unused:
+  hdepth
 
 Hint: Omit it from the simp argument list.
-  simp [planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵h̵k̵]
+  simp [objective, baseCost, planDepth,̵ ̵h̵d̵e̵p̵t̵h̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-JointResolutionCausalPlannerV1.lean:79:6: error: unsolved goals
-k : ℕ
-hk : 2 ≤ k
-⊢ roleChanges (canonical k) = 2 * k - 1
-JointResolutionCausalPlannerV1.lean:80:42: warning: This simp argument is unused:
-  hidden_vector_exact_interaction_depth k (by omega)
+JointResolutionCausalPlannerV1.lean:88:2: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  a ≥ 1
+  a ≥ 1
+where
+ a := ↑k
+JointResolutionCausalPlannerV1.lean:87:40: warning: This simp argument is unused:
+  hdepth
 
 Hint: Omit it from the simp argument list.
-  simp [objective, baseCost, planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵(̵b̵y̵ ̵o̵m̵e̵g̵a̵)̵]
+  simp [objective, baseCost, planDepth,̵ ̵h̵d̵e̵p̵t̵h̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-JointResolutionCausalPlannerV1.lean:87:6: error: unsolved goals
-k : ℕ
-hk : 0 < k
-⊢ roleChanges (canonical k) = 2 * k - 1
-JointResolutionCausalPlannerV1.lean:88:42: warning: This simp argument is unused:
-  hidden_vector_exact_interaction_depth k hk
+JointResolutionCausalPlannerV1.lean:110:2: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  b ≥ 1
+  a ≥ 2
+  a ≥ 1
+  a ≥ 1
+  2*a - b ≥ 2
+where
+ a := ↑k
+ b := ↑(roleChanges (canonical k))
+JointResolutionCausalPlannerV1.lean:109:40: warning: This simp argument is unused:
+  hdepth
 
 Hint: Omit it from the simp argument list.
-  simp [objective, baseCost, planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵h̵k̵]
+  simp [objective, baseCost, planDepth,̵ ̵h̵d̵e̵p̵t̵h̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-JointResolutionCausalPlannerV1.lean:110:6: error: unsolved goals
-k : ℕ
-hk : 2 ≤ k
-⊢ roleChanges (canonical k) = 2 * k - 1
-JointResolutionCausalPlannerV1.lean:111:42: warning: This simp argument is unused:
-  hidden_vector_exact_interaction_depth k (by omega)
+JointResolutionCausalPlannerV1.lean:141:2: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  b ≥ 0
+  a ≥ 0
+  3*a - b ≥ 2
+where
+ a := ↑B
+ b := ↑(3 * B + 2) * ↑(roleChanges (canonical 1))
+JointResolutionCausalPlannerV1.lean:140:57: warning: This simp argument is unused:
+  hdepth
 
 Hint: Omit it from the simp argument list.
-  simp [objective, baseCost, planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵(̵b̵y̵ ̵o̵m̵e̵g̵a̵)̵]
-
-Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-JointResolutionCausalPlannerV1.lean:141:24: warning: This simp argument is unused:
-  roleChanges
-
-Hint: Omit it from the simp argument list.
-  simp [objective, baseCost, planDepth, resolutionFirst, interactionDepth, canonical,
-  ̵  ̵ ̵ ̵switchesFrom,
-  ̲  ̲ ̲ ̲jump,̵ ̵r̵o̵l̵e̵C̵h̵a̵n̵g̵e̵s̵]
+  simp [objective, baseCost, planDepth, resolutionFirst,̵ ̵h̵d̵e̵p̵t̵h̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
