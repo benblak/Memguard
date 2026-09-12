@@ -1,0 +1,85 @@
+name: INSACERMO Probe-Repair Minimax Kernel V1
+on:
+  push:
+    branches: [insacermo-probe-repair-minimax-kernel-v1]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+      - name: Build quotient dependency
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env lean -o .lake/build/lib/lean/ProbeRepairAlternationKernelV1.olean ProbeRepairAlternationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairRealizationKernelV1.olean ProbeRepairRealizationKernelV1.lean
+      - name: Kernel-check minimax formalization
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/ProbeRepairMinimaxKernelV1.olean ProbeRepairMinimaxKernelV1.lean 2>&1 | tee PROBE_REPAIR_MINIMAX_KERNEL_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_OUTPUT.txt lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture Lean probe-repair minimax diagnostics [skip ci]' || true
+          git push
+          exit 1
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v ProbeRepairMinimaxKernelV1 | tee PROBE_REPAIR_MINIMAX_KERNEL_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' ProbeRepairMinimaxKernelV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' ProbeRepairMinimaxKernelV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO PROBE-REPAIR MINIMAX KERNEL V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Targets: concrete hidden-vector stage recursion; winning-trace lower bound; exact optimal value V_k=2k; uniqueness of optimal role trace (PR)^k; optimal interaction depth 2k-1; unbounded optimal interaction depth.' \
+            'Scope: deterministic finite hidden-vector family under unit intervention costs and the stated safety contract. This is a theorem about the existing INSACERMO planner, not a new engine law.' \
+            > PROBE_REPAIR_MINIMAX_KERNEL_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/ProbeRepairMinimaxKernelV1.olean ./ProbeRepairMinimaxKernelV1.olean
+          sha256sum ProbeRepairMinimaxKernelV1.lean ProbeRepairMinimaxKernelV1.olean PROBE_REPAIR_MINIMAX_KERNEL_V1_OUTPUT.txt PROBE_REPAIR_MINIMAX_KERNEL_V1_LEANCHECKER.txt PROBE_REPAIR_MINIMAX_KERNEL_V1_CERTIFICATE.txt > PROBE_REPAIR_MINIMAX_KERNEL_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_PROBE_REPAIR_MINIMAX_KERNEL_V1
+          path: |
+            lean_ci/ProbeRepairMinimaxKernelV1.lean
+            lean_ci/ProbeRepairMinimaxKernelV1.olean
+            lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_OUTPUT.txt
+            lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_CERTIFICATE.txt
+            lean_ci/PROBE_REPAIR_MINIMAX_KERNEL_V1_SHA256SUMS.txt
+          if-no-files-found: error
