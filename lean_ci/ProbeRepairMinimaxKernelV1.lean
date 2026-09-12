@@ -252,6 +252,7 @@ theorem optimal_trace_eq_canonical (k : Nat) (xs : List Role)
               cases ys with
               | nil =>
                   simp at hlen
+                  omega
               | cons b zs =>
                   have hlen' : zs.length + 2 = 2 * (k + 1) := by
                     simpa using hlen
