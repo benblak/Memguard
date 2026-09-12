@@ -140,6 +140,7 @@ theorem joint_resolution_causal_separation (K : Nat) :
       K < decouplingRegretAtTwo k := by
   refine ⟨K + 1, by omega, resolution_cost_only_strictly_prefers_local (K + 1),
     joint_objective_prefers_global_at_penalty_two (K + 1) (by omega), ?_⟩
-  exact (unbounded_additive_decoupling_regret K).choose_spec.2.2
+  rw [decoupling_regret_at_two_exact (K + 1) (by omega)]
+  omega
 
 end InsacermoJointResolutionCausalPlanner
