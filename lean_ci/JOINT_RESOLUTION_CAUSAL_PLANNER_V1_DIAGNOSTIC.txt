@@ -1,0 +1,53 @@
+JointResolutionCausalPlannerV1.lean:57:38: error: unsolved goals
+k : ℕ
+hk : 0 < k
+⊢ roleChanges (canonical k) = 2 * k - 1
+JointResolutionCausalPlannerV1.lean:58:19: warning: This simp argument is unused:
+  hidden_vector_exact_interaction_depth k hk
+
+Hint: Omit it from the simp argument list.
+  simp [planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵h̵k̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+JointResolutionCausalPlannerV1.lean:79:6: error: unsolved goals
+k : ℕ
+hk : 2 ≤ k
+⊢ roleChanges (canonical k) = 2 * k - 1
+JointResolutionCausalPlannerV1.lean:80:42: warning: This simp argument is unused:
+  hidden_vector_exact_interaction_depth k (by omega)
+
+Hint: Omit it from the simp argument list.
+  simp [objective, baseCost, planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵(̵b̵y̵ ̵o̵m̵e̵g̵a̵)̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+JointResolutionCausalPlannerV1.lean:87:6: error: unsolved goals
+k : ℕ
+hk : 0 < k
+⊢ roleChanges (canonical k) = 2 * k - 1
+JointResolutionCausalPlannerV1.lean:88:42: warning: This simp argument is unused:
+  hidden_vector_exact_interaction_depth k hk
+
+Hint: Omit it from the simp argument list.
+  simp [objective, baseCost, planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵h̵k̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+JointResolutionCausalPlannerV1.lean:110:6: error: unsolved goals
+k : ℕ
+hk : 2 ≤ k
+⊢ roleChanges (canonical k) = 2 * k - 1
+JointResolutionCausalPlannerV1.lean:111:42: warning: This simp argument is unused:
+  hidden_vector_exact_interaction_depth k (by omega)
+
+Hint: Omit it from the simp argument list.
+  simp [objective, baseCost, planDepth,̵ ̵h̵i̵d̵d̵e̵n̵_̵v̵e̵c̵t̵o̵r̵_̵e̵x̵a̵c̵t̵_̵i̵n̵t̵e̵r̵a̵c̵t̵i̵o̵n̵_̵d̵e̵p̵t̵h̵ ̵k̵ ̵(̵b̵y̵ ̵o̵m̵e̵g̵a̵)̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+JointResolutionCausalPlannerV1.lean:141:24: warning: This simp argument is unused:
+  roleChanges
+
+Hint: Omit it from the simp argument list.
+  simp [objective, baseCost, planDepth, resolutionFirst, interactionDepth, canonical,
+  ̵  ̵ ̵ ̵switchesFrom,
+  ̲  ̲ ̲ ̲jump,̵ ̵r̵o̵l̵e̵C̵h̵a̵n̵g̵e̵s̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
