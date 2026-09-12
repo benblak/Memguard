@@ -1,11 +1,7 @@
-ProbeRepairDualityKernelV1.lean:250:59: error: unsolved goals
+ProbeRepairDualityKernelV1.lean:253:59: error: unsolved goals
 M : ℝ
-⊢ (∑ x ∈ {probeX, repairY},
-      match x with
-      | probeX => 1
-      | probeY => M
-      | repairX => M
-      | repairY => 1) =
+⊢ ((1 + if probeY = probeX ∨ probeY = repairY then M else 0) + if repairX = probeX ∨ repairX = repairY then M else 0) +
+      1 =
     2
 Try this:
   [apply] ring_nf
@@ -13,17 +9,13 @@ Try this:
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-ProbeRepairDualityKernelV1.lean:297:28: error: unsolved goals
+ProbeRepairDualityKernelV1.lean:300:28: error: unsolved goals
 M : ℝ
 S : Finset Intervention
 hp : ProbeOnly S
 hc : CoversAll S
-⊢ (∑ x ∈ {probeX, probeY},
-      match x with
-      | probeX => 1
-      | probeY => M
-      | repairX => M
-      | repairY => 1) =
+⊢ ((1 + M + if repairX = probeX ∨ repairX = probeY then M else 0) +
+      if repairY = probeX ∨ repairY = probeY then 1 else 0) =
     1 + M
 Try this:
   [apply] ring_nf
@@ -31,15 +23,9 @@ Try this:
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-ProbeRepairDualityKernelV1.lean:303:28: error: unsolved goals
+ProbeRepairDualityKernelV1.lean:306:28: error: unsolved goals
 M : ℝ
 S : Finset Intervention
 hr : RepairOnly S
 hc : CoversAll S
-⊢ (∑ x ∈ {repairX, repairY},
-      match x with
-      | probeX => 1
-      | probeY => M
-      | repairX => M
-      | repairY => 1) =
-    1 + M
+⊢ ((if probeX = repairX ∨ probeX = repairY then 1 else 0) + if probeY = repairX ∨ probeY = repairY then M else 0) = 0
