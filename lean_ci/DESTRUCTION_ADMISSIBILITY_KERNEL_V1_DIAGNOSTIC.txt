@@ -1,0 +1,23 @@
+DestructionAdmissibilityKernelV1.lean:181:2: error: Tactic `rfl` failed: The left-hand side
+  FiberSafe Good B C h
+is not definitionally equal to the right-hand side
+  ∀ (y : Obs), (Fiber B h y).Nonempty → ¬Obstructive Good C (Fiber B h y)
+
+World : Type u
+Act : Type v
+Obs : Type u_1
+Good : World → Act → Prop
+B : Set World
+C : Set Act
+h : World → Obs
+⊢ FiberSafe Good B C h ↔ ∀ (y : Obs), (Fiber B h y).Nonempty → ¬Obstructive Good C (Fiber B h y)
+DestructionAdmissibilityKernelV1.lean:236:5: warning: Variable name `hProbe` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+DestructionAdmissibilityKernelV1.lean:238:5: warning: Variable name `hRepair` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
