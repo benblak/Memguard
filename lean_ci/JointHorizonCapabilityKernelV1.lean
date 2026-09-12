@@ -143,7 +143,7 @@ open Req2
 open InsacermoCapabilityDebt
 
 /-- Two horizons: 0 is present, 1 is later. -/
-def H := Nat
+abbrev H := Nat
 
 /-- Contract grows from base-only to base+future. -/
 def JointContract : H → Set Req2
