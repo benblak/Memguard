@@ -1,0 +1,83 @@
+name: INSACERMO Temporal Destruction Kernel V1
+on:
+  push:
+    branches: [insacermo-temporal-destruction-kernel-v1]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+      - name: Build destruction admissibility dependency
+        working-directory: lean_ci
+        run: |
+          lake env lean -o .lake/build/lib/lean/DestructionAdmissibilityKernelV1.olean DestructionAdmissibilityKernelV1.lean
+      - name: Kernel-check temporal destruction
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/TemporalDestructionKernelV1.olean TemporalDestructionKernelV1.lean 2>&1 | tee TEMPORAL_DESTRUCTION_KERNEL_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_OUTPUT.txt lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture temporal destruction diagnostics [skip ci]' || true
+          git push
+          exit 1
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v TemporalDestructionKernelV1 | tee TEMPORAL_DESTRUCTION_KERNEL_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' TemporalDestructionKernelV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' TemporalDestructionKernelV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO TEMPORAL DESTRUCTION KERNEL V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Targets: local safety preserved by destruction; future reachability destroyed; local admissibility does not imply temporal admissibility; generic future-preservation rejects the destructive map.' \
+            'Scope: finite deterministic witness separating immediate safety from horizon-sensitive preservation.' \
+            > TEMPORAL_DESTRUCTION_KERNEL_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/TemporalDestructionKernelV1.olean ./TemporalDestructionKernelV1.olean
+          sha256sum TemporalDestructionKernelV1.lean TemporalDestructionKernelV1.olean TEMPORAL_DESTRUCTION_KERNEL_V1_OUTPUT.txt TEMPORAL_DESTRUCTION_KERNEL_V1_LEANCHECKER.txt TEMPORAL_DESTRUCTION_KERNEL_V1_CERTIFICATE.txt > TEMPORAL_DESTRUCTION_KERNEL_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_TEMPORAL_DESTRUCTION_KERNEL_V1
+          path: |
+            lean_ci/TemporalDestructionKernelV1.lean
+            lean_ci/TemporalDestructionKernelV1.olean
+            lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_OUTPUT.txt
+            lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_CERTIFICATE.txt
+            lean_ci/TEMPORAL_DESTRUCTION_KERNEL_V1_SHA256SUMS.txt
+          if-no-files-found: error
