@@ -1,0 +1,79 @@
+name: INSACERMO Destruction Admissibility Kernel V1
+on:
+  push:
+    branches: [insacermo-destruction-admissibility-kernel-v1]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+      - name: Kernel-check destruction admissibility
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/DestructionAdmissibilityKernelV1.olean DestructionAdmissibilityKernelV1.lean 2>&1 | tee DESTRUCTION_ADMISSIBILITY_KERNEL_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_OUTPUT.txt lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture destruction admissibility diagnostics [skip ci]' || true
+          git push
+          exit 1
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v DestructionAdmissibilityKernelV1 | tee DESTRUCTION_ADMISSIBILITY_KERNEL_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' DestructionAdmissibilityKernelV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' DestructionAdmissibilityKernelV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO DESTRUCTION ADMISSIBILITY KERNEL V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Targets: guarantee-profile preservation iff set inclusion; preorder/composition; contract strengthening antitonicity; exact PRESERVE gate from safe sources; future equivalence iff mutual preservation; one-shot actionability iff no obstructive realized fiber; refinement preserves safety; capability expansion preserves safety.' \
+            'Scope: abstract contract-relative guarantee preorder plus finite one-shot common-action semantics. This kernel does not by itself formalize information debt, factorization, or temporal causal planning.' \
+            > DESTRUCTION_ADMISSIBILITY_KERNEL_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/DestructionAdmissibilityKernelV1.olean ./DestructionAdmissibilityKernelV1.olean
+          sha256sum DestructionAdmissibilityKernelV1.lean DestructionAdmissibilityKernelV1.olean DESTRUCTION_ADMISSIBILITY_KERNEL_V1_OUTPUT.txt DESTRUCTION_ADMISSIBILITY_KERNEL_V1_LEANCHECKER.txt DESTRUCTION_ADMISSIBILITY_KERNEL_V1_CERTIFICATE.txt > DESTRUCTION_ADMISSIBILITY_KERNEL_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_DESTRUCTION_ADMISSIBILITY_KERNEL_V1
+          path: |
+            lean_ci/DestructionAdmissibilityKernelV1.lean
+            lean_ci/DestructionAdmissibilityKernelV1.olean
+            lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_OUTPUT.txt
+            lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_CERTIFICATE.txt
+            lean_ci/DESTRUCTION_ADMISSIBILITY_KERNEL_V1_SHA256SUMS.txt
+          if-no-files-found: error
