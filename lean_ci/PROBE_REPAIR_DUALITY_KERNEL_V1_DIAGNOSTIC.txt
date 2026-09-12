@@ -1,19 +1,45 @@
-ProbeRepairDualityKernelV1.lean:118:31: error: `simp` made no progress
-ProbeRepairDualityKernelV1.lean:167:7: error(lean.invalidField): Invalid field `any`: The environment does not contain `Finset.any`, so it is not possible to project the field `any` from an expression
-  Caps
-of type `Finset A6`
-ProbeRepairDualityKernelV1.lean:171:6: error(lean.invalidField): Invalid field `isEmpty`: The environment does not contain `Finset.isEmpty`, so it is not possible to project the field `isEmpty` from an expression
-  O
-of type `Finset W3`
-ProbeRepairDualityKernelV1.lean:173:38: error(lean.invalidField): Invalid field `all`: The environment does not contain `Finset.all`, so it is not possible to project the field `all` from an expression
-  Finset.univ.powerset
-of type `Finset (Finset W3)`
-ProbeRepairDualityKernelV1.lean:186:2: error: Tactic `native_decide` failed: Could not evaluate decidable instance. Error: cannot evaluate code because 'InsacermoProbeRepair.minimalOldObstructionFSB' uses 'sorry' and/or contains errors
-ProbeRepairDualityKernelV1.lean:243:59: error: unsolved goals
+ProbeRepairDualityKernelV1.lean:250:59: error: unsolved goals
 M : ℝ
-⊢ 1 + 1 = 2
-ProbeRepairDualityKernelV1.lean:300:2: error: No goals to be solved
-ProbeRepairDualityKernelV1.lean:318:2: error: unsolved goals
-case refine_4
-K : ℕ
-⊢ ↑K * 2 < 2 * ↑K + 1 + 1
+⊢ (∑ x ∈ {probeX, repairY},
+      match x with
+      | probeX => 1
+      | probeY => M
+      | repairX => M
+      | repairY => 1) =
+    2
+Try this:
+  [apply] ring_nf
+  
+  The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
+    
+  Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
+ProbeRepairDualityKernelV1.lean:297:28: error: unsolved goals
+M : ℝ
+S : Finset Intervention
+hp : ProbeOnly S
+hc : CoversAll S
+⊢ (∑ x ∈ {probeX, probeY},
+      match x with
+      | probeX => 1
+      | probeY => M
+      | repairX => M
+      | repairY => 1) =
+    1 + M
+Try this:
+  [apply] ring_nf
+  
+  The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
+    
+  Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
+ProbeRepairDualityKernelV1.lean:303:28: error: unsolved goals
+M : ℝ
+S : Finset Intervention
+hr : RepairOnly S
+hc : CoversAll S
+⊢ (∑ x ∈ {repairX, repairY},
+      match x with
+      | probeX => 1
+      | probeY => M
+      | repairX => M
+      | repairY => 1) =
+    1 + M
