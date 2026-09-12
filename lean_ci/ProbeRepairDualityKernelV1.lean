@@ -114,11 +114,16 @@ theorem fractional_probe_repair_weak_duality
   calc
     (∑ o, y o) ≤ ∑ o, y o * (∑ i, M o i * x i) := by
       exact Finset.sum_le_sum (fun o _ => hrow o)
-    _ = ∑ i, x i * (∑ o, M o i * y o) := by
-      simp_rw [Finset.mul_sum, Finset.sum_mul]
+    _ = ∑ o, ∑ i, y o * (M o i * x i) := by
+      apply Finset.sum_congr rfl
+      intro o ho
+      rw [Finset.mul_sum]
+    _ = ∑ i, ∑ o, y o * (M o i * x i) := by
       rw [Finset.sum_comm]
+    _ = ∑ i, x i * (∑ o, M o i * y o) := by
       apply Finset.sum_congr rfl
       intro i hi
+      rw [Finset.mul_sum]
       apply Finset.sum_congr rfl
       intro o ho
       ring
@@ -162,16 +167,18 @@ def pair13 : Finset W3 := {w1, w3}
 def pair23 : Finset W3 := {w2, w3}
 def triple3 : Finset W3 := {w1, w2, w3}
 
-/-- Boolean executable version of “some capability is common to all worlds in O”. -/
+/-- Executable test for “some capability is common to all worlds in O”. -/
 def commonFSB (Caps : Finset A6) (O : Finset W3) : Bool :=
-  Caps.any (fun a => O.all (fun w => good3 w a))
+  decide ((Caps.filter (fun a => (O.filter (fun w => good3 w a = true)).card = O.card)).Nonempty)
 
-/-- Boolean executable minimal-old-obstruction predicate. -/
+/-- Proper nonempty old-obstructive subsets of O. -/
+def badProperSubsets (O : Finset W3) : Finset (Finset W3) :=
+  (Finset.univ.powerset).filter
+    (fun T => T ⊂ O ∧ T.Nonempty ∧ commonFSB old3 T = false)
+
+/-- Executable minimal-old-obstruction predicate. -/
 def minimalOldObstructionFSB (O : Finset W3) : Bool :=
-  (!O.isEmpty) &&
-  !(commonFSB old3 O) &&
-  ((Finset.univ : Finset W3).powerset.all fun T =>
-    if T ⊂ O ∧ T.Nonempty then commonFSB old3 T else true)
+  decide (O.Nonempty) && !(commonFSB old3 O) && decide (badProperSubsets O = ∅)
 
 /-- T3 — all three old minimal pair obstructions are individually repairable while the unchanged
 three-world fiber still has no single common action after all pair repairs are added. -/
@@ -241,7 +248,7 @@ lemma mixedPlan_covers : CoversAll mixedPlan := by
   · exact ⟨repairY, by simp [mixedPlan], by simp [resolves]⟩
 
 lemma mixedPlan_cost (M : ℝ) : planCost M mixedPlan = 2 := by
-  simp [planCost, mixedPlan, interventionCost]
+  norm_num [planCost, mixedPlan, interventionCost]
 
 lemma probeOnly_cover_eq (S : Finset Intervention) (hp : ProbeOnly S) (hc : CoversAll S) :
     S = {probeX, probeY} := by
@@ -289,15 +296,13 @@ lemma probeOnly_cover_cost (M : ℝ) (S : Finset Intervention)
     (hp : ProbeOnly S) (hc : CoversAll S) :
     planCost M S = M + 1 := by
   rw [probeOnly_cover_eq S hp hc]
-  simp [planCost, interventionCost]
-  ring
+  norm_num [planCost, interventionCost] <;> ring
 
 lemma repairOnly_cover_cost (M : ℝ) (S : Finset Intervention)
     (hr : RepairOnly S) (hc : CoversAll S) :
     planCost M S = M + 1 := by
   rw [repairOnly_cover_eq S hr hc]
-  simp [planCost, interventionCost]
-  ring
+  norm_num [planCost, interventionCost] <;> ring
 
 /-- T4 — mixed PROBE+REPAIR can beat either pure family by an arbitrarily large factor. -/
 theorem unbounded_hybrid_advantage (K : ℕ) :
@@ -316,7 +321,7 @@ theorem unbounded_hybrid_advantage (K : ℕ) :
   · intro S hr hc
     exact repairOnly_cover_cost _ S hr hc
   · rw [mixedPlan_cost]
-    norm_num
+    nlinarith
 
 end HybridAdvantage
 
