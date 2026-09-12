@@ -10,31 +10,30 @@ INSACERMO Probe–Repair Duality Kernel V1.
 
 Targets:
 T1  Obstruction Resolution Cover Theorem.
-T2W Fractional probe–repair weak duality (the weak-duality half of the LP duality claim).
+T2W Fractional probe–repair weak duality.
 T3  Minimal-obstruction insufficiency under variable repair.
 T4  Unbounded hybrid PROBE+REPAIR advantage.
 
-The general strong LP equality for T2 is deliberately not asserted here: mathlib v4.32.1 does
-not yet expose a ready-made linear-programming strong-duality theorem.  This file kernel-checks
-the structural reduction and the universal weak-duality inequality without adding axioms.
+Strong LP duality is deliberately not asserted here: mathlib v4.32.1 contains Farkas/separation
+machinery but no ready-made linear-programming strong-duality API.  The structural reduction and
+universal weak-duality inequality are proved without added axioms.
 -/
 
 section StructuralCore
 
 variable {W A Y Q : Type*}
 
-/-- Worlds that remain indistinguishable from `s` after the current representation `h` and all
-selected probes `P`.  Probes are taken Boolean only to keep the formal interface minimal; the
-cover theorem uses only equality/inequality of probe outputs. -/
+/-- Worlds that remain indistinguishable from `s` after the current representation and all chosen
+Boolean probes. -/
 def FinalFiber (h : W → Y) (out : Q → W → Bool) (P : Set Q) (s : W) : Set W :=
   {t | h t = h s ∧ ∀ q, q ∈ P → out q t = out q s}
 
-/-- Safety/actionability after adding capabilities in `C` and selecting probes `P`. -/
+/-- Actionability after adding capabilities in `C` and selecting probes `P`. -/
 def SafeAfter (Good : W → A → Prop) (C : Set A) (h : W → Y)
     (out : Q → W → Bool) (P : Set Q) : Prop :=
   ∀ s, ∃ a, a ∈ C ∧ ∀ t, t ∈ FinalFiber h out P s → Good t a
 
-/-- A common action for all worlds in `O`. -/
+/-- One action works for every world in `O`. -/
 def HasCommonAction (Good : W → A → Prop) (C : Set A) (O : Set W) : Prop :=
   ∃ a, a ∈ C ∧ ∀ t, t ∈ O → Good t a
 
@@ -43,20 +42,15 @@ def InitialObstruction (Good : W → A → Prop) (C : Set A) (h : W → Y)
     (O : Set W) : Prop :=
   O.Nonempty ∧ (∃ s₀, O ⊆ {t | h t = h s₀}) ∧ ¬ HasCommonAction Good C O
 
-/-- A selected probe resolves `O` by splitting at least two worlds in it. -/
+/-- A selected probe resolves `O` by splitting two worlds in it. -/
 def Separated (out : Q → W → Bool) (P : Set Q) (O : Set W) : Prop :=
   ∃ q, q ∈ P ∧ ∃ s, s ∈ O ∧ ∃ t, t ∈ O ∧ out q s ≠ out q t
 
-/-- A newly available capability resolves `O` by covering all of it with one common action. -/
+/-- A newly available capability resolves `O` by covering it with one common action. -/
 def CoveredBy (Good : W → A → Prop) (R : Set A) (O : Set W) : Prop :=
   HasCommonAction Good R O
 
-/-- T1 — Obstruction Resolution Cover Theorem.
-
-After choosing probes `P` and adding capabilities `R`, safety is equivalent to the statement that
-every subset of a current fiber that lacks an old common action is either split by a chosen probe
-or covered by one newly added common action.
--/
+/-- T1 — Obstruction Resolution Cover Theorem. -/
 theorem obstruction_resolution_cover
     (Good : W → A → Prop) (C R : Set A) (h : W → Y)
     (out : Q → W → Bool) (P : Set Q) :
@@ -68,8 +62,8 @@ theorem obstruction_resolution_cover
     by_cases hsep : Separated out P O
     · exact Or.inl hsep
     · right
-      rcases hO.1 with ⟨s₀, hs₀O⟩
-      rcases hO.2.1 with ⟨b, hb⟩
+      rcases hO with ⟨hneO, ⟨b, hb⟩, hnoOld⟩
+      rcases hneO with ⟨s₀, hs₀O⟩
       rcases hsafe s₀ with ⟨a, haCR, haSafe⟩
       have hs₀h : h s₀ = h b := hb hs₀O
       have hsameH : ∀ t, t ∈ O → h t = h s₀ := by
@@ -84,9 +78,7 @@ theorem obstruction_resolution_cover
         intro t ht
         exact haSafe t ⟨hsameH t ht, hsameQ t ht⟩
       rcases haCR with haC | haR
-      · exfalso
-        apply hO.2.2
-        exact ⟨a, haC, hGoodO⟩
+      · exact False.elim (hnoOld ⟨a, haC, hGoodO⟩)
       · exact ⟨a, haR, hGoodO⟩
   · intro hresolve s
     let O : Set W := FinalFiber h out P s
@@ -94,10 +86,9 @@ theorem obstruction_resolution_cover
     · rcases hOld with ⟨a, haC, haGood⟩
       exact ⟨a, Or.inl haC, by simpa [O] using haGood⟩
     · have hOb : InitialObstruction Good C h O := by
-        refine ⟨?_, ?_, hOld⟩
-        · exact ⟨s, by simp [O, FinalFiber]⟩
-        · refine ⟨s, ?_⟩
-          intro t ht
+        refine ⟨⟨s, ?_⟩, ⟨s, ?_⟩, hOld⟩
+        · simp [O, FinalFiber]
+        · intro t ht
           exact ht.1
       have hNoSep : ¬ Separated out P O := by
         intro hsep
@@ -114,12 +105,9 @@ section FractionalDuality
 
 variable {Obs Intv : Type*} [Fintype Obs] [Fintype Intv]
 
-/-- T2W — universal weak duality for the fractional obstruction-cover relaxation.
-`M o i` is the nonnegative incidence/coverage matrix, `c i` is intervention cost, `x` is a
-fractional intervention vector and `y` an obstruction-price vector. -/
+/-- T2W — weak duality for the fractional obstruction-cover relaxation. -/
 theorem fractional_probe_repair_weak_duality
     (M : Obs → Intv → ℝ) (c : Intv → ℝ) (x : Intv → ℝ) (y : Obs → ℝ)
-    (hM : ∀ o i, 0 ≤ M o i)
     (hx : ∀ i, 0 ≤ x i)
     (hy : ∀ o, 0 ≤ y o)
     (hPrimal : ∀ o, 1 ≤ ∑ i, M o i * x i)
@@ -128,11 +116,11 @@ theorem fractional_probe_repair_weak_duality
   classical
   have hrow : ∀ o, y o ≤ y o * (∑ i, M o i * x i) := by
     intro o
-    have := mul_le_mul_of_nonneg_left (hPrimal o) (hy o)
-    simpa using this
+    have hm := mul_le_mul_of_nonneg_left (hPrimal o) (hy o)
+    simpa using hm
   calc
-    (∑ o, y o) ≤ ∑ o, y o * (∑ i, M o i * x i) :=
-      Finset.sum_le_sum fun o _ => hrow o
+    (∑ o, y o) ≤ ∑ o, y o * (∑ i, M o i * x i) := by
+      exact Finset.sum_le_sum (fun o _ => hrow o)
     _ = ∑ i, x i * (∑ o, M o i * y o) := by
       simp_rw [mul_sum, Finset.sum_mul]
       rw [Finset.sum_comm]
@@ -141,8 +129,8 @@ theorem fractional_probe_repair_weak_duality
       apply Finset.sum_congr rfl
       intro o ho
       ring
-    _ ≤ ∑ i, x i * c i :=
-      Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left (hDual i) (hx i)
+    _ ≤ ∑ i, x i * c i := by
+      exact Finset.sum_le_sum (fun i _ => mul_le_mul_of_nonneg_left (hDual i) (hx i))
     _ = ∑ i, c i * x i := by
       apply Finset.sum_congr rfl
       intro i hi
@@ -163,67 +151,43 @@ inductive A6
 open W3 A6
 
 /-- Old singleton actions and new pair-repair actions. -/
-def good3 : W3 → A6 → Prop
-  | w1, a1 => True
-  | w2, a2 => True
-  | w3, a3 => True
-  | w1, r12 => True
-  | w2, r12 => True
-  | w1, r13 => True
-  | w3, r13 => True
-  | w2, r23 => True
-  | w3, r23 => True
-  | _, _ => False
+def good3 : W3 → A6 → Bool
+  | w1, a1 => true
+  | w2, a2 => true
+  | w3, a3 => true
+  | w1, r12 => true
+  | w2, r12 => true
+  | w1, r13 => true
+  | w3, r13 => true
+  | w2, r23 => true
+  | w3, r23 => true
+  | _, _ => false
 
-instance good3Decidable (w : W3) (a : A6) : Decidable (good3 w a) := by
-  cases w <;> cases a <;> simp [good3] <;> infer_instance
+def old3 : Finset A6 := {a1, a2, a3}
+def repairs3 : Finset A6 := {r12, r13, r23}
+def pair12 : Finset W3 := {w1, w2}
+def pair13 : Finset W3 := {w1, w3}
+def pair23 : Finset W3 := {w2, w3}
+def triple3 : Finset W3 := {w1, w2, w3}
 
-def old3 : Set A6 := {a | a = a1 ∨ a = a2 ∨ a = a3}
-def repairs3 : Set A6 := {a | a = r12 ∨ a = r13 ∨ a = r23}
-def h3 : W3 → Unit := fun _ => ()
+def CommonFS (Caps : Finset A6) (O : Finset W3) : Prop :=
+  ∃ a ∈ Caps, ∀ w ∈ O, good3 w a = true
 
-def pair12 : Set W3 := {w | w = w1 ∨ w = w2}
-def pair13 : Set W3 := {w | w = w1 ∨ w = w3}
-def pair23 : Set W3 := {w | w = w2 ∨ w = w3}
+def MinimalOldObstructionFS (O : Finset W3) : Prop :=
+  O.Nonempty ∧ ¬ CommonFS old3 O ∧
+    ∀ T : Finset W3, T ⊂ O → T.Nonempty → CommonFS old3 T
 
-/-- Minimality relative to the current representation and old capability set. -/
-def MinimalInitialObstruction
-    (Good : W3 → A6 → Prop) (C : Set A6) (h : W3 → Unit) (O : Set W3) : Prop :=
-  InitialObstruction Good C h O ∧
-    ∀ T : Set W3, T ⊂ O → T.Nonempty → HasCommonAction Good C T
-
-theorem t3_pair12_minimal : MinimalInitialObstruction good3 old3 h3 pair12 := by
-  native_decide
-
-theorem t3_pair13_minimal : MinimalInitialObstruction good3 old3 h3 pair13 := by
-  native_decide
-
-theorem t3_pair23_minimal : MinimalInitialObstruction good3 old3 h3 pair23 := by
-  native_decide
-
-theorem t3_each_minimal_pair_is_repaired :
-    CoveredBy good3 repairs3 pair12 ∧
-    CoveredBy good3 repairs3 pair13 ∧
-    CoveredBy good3 repairs3 pair23 := by
-  native_decide
-
-/-- Yet no single old-or-new action covers all three worlds. -/
-theorem t3_triple_still_has_no_common_action :
-    ¬ HasCommonAction good3 (old3 ∪ repairs3) (Set.univ : Set W3) := by
-  native_decide
-
-/-- T3 — the minimal old obstructions can all be repaired individually while the unchanged
-three-world fiber remains unsafe under the enlarged capability set. -/
+/-- T3 — all three old minimal pair obstructions can be repaired individually, while the unchanged
+three-world fiber still has no single common action after adding all three pair repairs. -/
 theorem minimal_obstructions_insufficient_under_repair :
-    (MinimalInitialObstruction good3 old3 h3 pair12 ∧
-      MinimalInitialObstruction good3 old3 h3 pair13 ∧
-      MinimalInitialObstruction good3 old3 h3 pair23) ∧
-    (CoveredBy good3 repairs3 pair12 ∧
-      CoveredBy good3 repairs3 pair13 ∧
-      CoveredBy good3 repairs3 pair23) ∧
-    ¬ HasCommonAction good3 (old3 ∪ repairs3) (Set.univ : Set W3) := by
-  exact ⟨⟨t3_pair12_minimal, t3_pair13_minimal, t3_pair23_minimal⟩,
-    t3_each_minimal_pair_is_repaired, t3_triple_still_has_no_common_action⟩
+    MinimalOldObstructionFS pair12 ∧
+    MinimalOldObstructionFS pair13 ∧
+    MinimalOldObstructionFS pair23 ∧
+    CommonFS repairs3 pair12 ∧
+    CommonFS repairs3 pair13 ∧
+    CommonFS repairs3 pair23 ∧
+    ¬ CommonFS (old3 ∪ repairs3) triple3 := by
+  native_decide
 
 end MinimalObstructionCounterexample
 
@@ -239,41 +203,30 @@ inductive Intervention
 
 open Ob2 Intervention
 
-/-- Incidence pattern: each intervention resolves exactly one of the two independent obstructions. -/
-def resolves : Intervention → Ob2 → Prop
-  | probeX, x => True
-  | repairX, x => True
-  | probeY, y => True
-  | repairY, y => True
-  | _, _ => False
+def resolves : Intervention → Ob2 → Bool
+  | probeX, x => true
+  | repairX, x => true
+  | probeY, y => true
+  | repairY, y => true
+  | _, _ => false
 
-instance resolvesDecidable (i : Intervention) (o : Ob2) : Decidable (resolves i o) := by
-  cases i <;> cases o <;> simp [resolves] <;> infer_instance
+def isProbe : Intervention → Bool
+  | probeX | probeY => true
+  | _ => false
 
-def isProbe : Intervention → Prop
-  | probeX | probeY => True
-  | _ => False
-
-instance isProbeDecidable (i : Intervention) : Decidable (isProbe i) := by
-  cases i <;> simp [isProbe] <;> infer_instance
-
-def isRepair : Intervention → Prop
-  | repairX | repairY => True
-  | _ => False
-
-instance isRepairDecidable (i : Intervention) : Decidable (isRepair i) := by
-  cases i <;> simp [isRepair] <;> infer_instance
+def isRepair : Intervention → Bool
+  | repairX | repairY => true
+  | _ => false
 
 def CoversAll (S : Finset Intervention) : Prop :=
-  ∀ o : Ob2, ∃ i ∈ S, resolves i o
+  ∀ o : Ob2, ∃ i ∈ S, resolves i o = true
 
 def ProbeOnly (S : Finset Intervention) : Prop :=
-  ∀ i ∈ S, isProbe i
+  ∀ i ∈ S, isProbe i = true
 
 def RepairOnly (S : Finset Intervention) : Prop :=
-  ∀ i ∈ S, isRepair i
+  ∀ i ∈ S, isRepair i = true
 
-/-- `probeX` and `repairY` are cheap; their pure-type counterparts are expensive. -/
 def interventionCost (M : ℝ) : Intervention → ℝ
   | probeX => 1
   | probeY => M
@@ -350,9 +303,8 @@ lemma repairOnly_cover_cost (M : ℝ) (S : Finset Intervention)
   simp [planCost, interventionCost]
   ring
 
-/-- T4 — for every requested factor `K`, there is a two-obstruction instance in which every
-pure-PROBE or pure-REPAIR solution costs `M+1`, while a mixed solution costs exactly two and the
-pure/mixed cost ratio exceeds `K`. -/
+/-- T4 — the advantage of allowing a mixed PROBE+REPAIR plan over either pure family can exceed
+any prescribed factor. -/
 theorem unbounded_hybrid_advantage (K : ℕ) :
     ∃ M : ℝ,
       1 ≤ M ∧
@@ -361,13 +313,12 @@ theorem unbounded_hybrid_advantage (K : ℕ) :
       CoversAll mixedPlan ∧
       planCost M mixedPlan = 2 ∧
       (K : ℝ) * planCost M mixedPlan < M + 1 := by
-  refine ⟨2 * (K : ℝ) + 1, ?_, ?_, ?_, mixedPlan_covers, ?_, ?_⟩
+  refine ⟨2 * (K : ℝ) + 1, ?_, ?_, ?_, mixedPlan_covers, mixedPlan_cost _, ?_⟩
   · positivity
   · intro S hp hc
     exact probeOnly_cover_cost _ S hp hc
   · intro S hr hc
     exact repairOnly_cover_cost _ S hr hc
-  · exact mixedPlan_cost _
   · rw [mixedPlan_cost]
     norm_num
 
