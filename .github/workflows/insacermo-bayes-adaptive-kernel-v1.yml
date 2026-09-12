@@ -19,50 +19,50 @@ jobs:
         run: |
           set -euo pipefail
           python3 patch_bayes_adaptive_kernel_v1.py
-          sha256sum bayes_adaptive_kernel_v1.lean
+          cp bayes_adaptive_kernel_v1.lean BayesAdaptiveKernelV1.lean
+          sha256sum BayesAdaptiveKernelV1.lean
       - name: Kernel-check Bayes-adaptive formalization
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean -o BayesAdaptiveKernelV1.olean bayes_adaptive_kernel_v1.lean | tee BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt
+          mkdir -p .lake/build/lib/lean
+          lake env lean -o .lake/build/lib/lean/BayesAdaptiveKernelV1.olean BayesAdaptiveKernelV1.lean | tee BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt
       - name: Bundled leanchecker independent replay
         working-directory: lean_ci
         run: |
           set -euo pipefail
-          LEAN_PATH="$(lake env which lean)"
-          LEANCHECKER="$(dirname "$LEAN_PATH")/leanchecker"
-          test -x "$LEANCHECKER"
-          "$LEANCHECKER" BayesAdaptiveKernelV1.olean | tee BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt
+          lake env leanchecker -v BayesAdaptiveKernelV1 | tee BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt
       - name: Verify no placeholders or custom axioms
         working-directory: lean_ci
         run: |
-          if grep -nE '\b(sorry|admit)\b' bayes_adaptive_kernel_v1.lean; then exit 1; fi
-          if grep -nE '^\s*axiom\b' bayes_adaptive_kernel_v1.lean; then exit 1; fi
+          if grep -nE '\b(sorry|admit)\b' BayesAdaptiveKernelV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' BayesAdaptiveKernelV1.lean; then exit 1; fi
           echo 'No sorry/admit/custom axiom placeholders found.'
       - name: Build certification receipt
         working-directory: lean_ci
         run: |
           printf '%s\n' \
-            'INSACERMO BAYES-ADAPTIVE KERNEL V1' \
+            'INSACERMO BAYES-ADAPTIVE KERNEL V1 — MAX CERTIFICATION' \
             '' \
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
             'Lean: 4.32.1' \
             'mathlib: v4.32.1 / 520045ab14e26149ee970e2e617ca04b09bde5d6' \
-            'Certification: Lean elaboration/kernel check + bundled leanchecker replay.' \
+            'Certification: Lean elaboration/kernel check + bundled leanchecker declaration replay.' \
             'Targets: BA-1 through BA-9 finite-alphabet structural closure.' \
             'Includes normalized positive-evidence Bayes update, posterior-model martingale with zero-evidence handling, robust predecessor monotonicity, finite-horizon recursion, Bellman contraction, Banach unique fixed point, dual-effect witness and capability/model-forgetting witness.' \
             'No claim of novelty for classical Bayesian filtering, dual control, Bellman contraction or Banach fixed point.' \
             > BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt
-          sha256sum bayes_adaptive_kernel_v1.lean BayesAdaptiveKernelV1.olean BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt > BAYES_ADAPTIVE_KERNEL_V1_SHA256SUMS.txt
+          cp .lake/build/lib/lean/BayesAdaptiveKernelV1.olean ./BayesAdaptiveKernelV1.olean
+          sha256sum BayesAdaptiveKernelV1.lean BayesAdaptiveKernelV1.olean BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt > BAYES_ADAPTIVE_KERNEL_V1_SHA256SUMS.txt
       - name: Upload evidence
         uses: actions/upload-artifact@v4
         with:
           name: INSACERMO_BAYES_ADAPTIVE_KERNEL_V1_MAX
           path: |
-            lean_ci/bayes_adaptive_kernel_v1.lean
+            lean_ci/BayesAdaptiveKernelV1.lean
             lean_ci/BayesAdaptiveKernelV1.olean
             lean_ci/BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt
             lean_ci/BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt
