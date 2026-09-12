@@ -1,0 +1,125 @@
+JointHorizonCapabilityKernelV1.lean:30:0: warning: automatically included section variable(s) unused in theorem `InsacermoJointHorizonCapability.joint_not_admissible_has_witness`:
+  [Preorder Horizon]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [Preorder Horizon] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+JointHorizonCapabilityKernelV1.lean:49:5: warning: Variable name `hΓ` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+JointHorizonCapabilityKernelV1.lean:150:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:155:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:172:33: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Preorder H
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:173:8: error: Tactic `introN` failed: There are no additional binders or `let` bindings in the goal to introduce
+
+⊢ sorry
+JointHorizonCapabilityKernelV1.lean:187:28: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Preorder H
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:188:8: error: Tactic `introN` failed: There are no additional binders or `let` bindings in the goal to introduce
+
+⊢ sorry
+JointHorizonCapabilityKernelV1.lean:201:79: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:208:81: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:211:26: error: unsolved goals
+h : JointAdmissible WinJoint JointContract JointCap forgetNow MemoryState.rich sorry
+hx : WinJoint MemoryState.rich 0 base
+⊢ base ∈ sorry ()
+JointHorizonCapabilityKernelV1.lean:211:35: warning: declaration uses `sorry`
+JointHorizonCapabilityKernelV1.lean:217:79: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:218:81: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:224:24: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:225:42: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:226:56: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:228:26: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:229:27: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:230:57: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:231:59: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat H 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  H
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+JointHorizonCapabilityKernelV1.lean:233:8: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Preorder H
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
