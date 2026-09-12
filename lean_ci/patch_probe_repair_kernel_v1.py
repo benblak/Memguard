@@ -25,6 +25,7 @@ new = '''lemma mixedPlan_cost (M : ℝ) : planCost M mixedPlan = 2 := by
   have h3 : repairX ≠ probeX := by decide
   have h4 : repairX ≠ repairY := by decide
   simp [planCost, mixedPlan, h1, h2, h3, h4]
+  norm_num
 '''
 if old not in s:
     raise SystemExit('mixedPlan_cost target not found')
@@ -44,8 +45,7 @@ new = '''lemma probeOnly_cover_cost (M : ℝ) (S : Finset Intervention)
   have h2 : repairX ≠ probeY := by decide
   have h3 : repairY ≠ probeX := by decide
   have h4 : repairY ≠ probeY := by decide
-  simp [planCost, h1, h2, h3, h4]
-  ring
+  simp [planCost, h1, h2, h3, h4] <;> ring
 '''
 if old not in s:
     raise SystemExit('probeOnly_cover_cost target not found')
@@ -65,8 +65,7 @@ new = '''lemma repairOnly_cover_cost (M : ℝ) (S : Finset Intervention)
   have h2 : probeX ≠ repairY := by decide
   have h3 : probeY ≠ repairX := by decide
   have h4 : probeY ≠ repairY := by decide
-  simp [planCost, h1, h2, h3, h4]
-  ring
+  simp [planCost, h1, h2, h3, h4] <;> ring
 '''
 if old not in s:
     raise SystemExit('repairOnly_cover_cost target not found')
