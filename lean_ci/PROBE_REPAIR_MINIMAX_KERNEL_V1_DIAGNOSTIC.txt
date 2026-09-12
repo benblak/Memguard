@@ -1,42 +1,32 @@
-ProbeRepairMinimaxKernelV1.lean:139:5: warning: Variable name `n` is not explicitly referenced.
+ProbeRepairMinimaxKernelV1.lean:126:5: warning: Variable name `n` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-ProbeRepairMinimaxKernelV1.lean:171:16: error: omega could not prove the goal:
+ProbeRepairMinimaxKernelV1.lean:156:18: error: unsolved goals
+case succ.false.probe
+n : ℕ
+⊢ 2 * (n + 1) ≤ 2 * n + 1 + 1
+ProbeRepairMinimaxKernelV1.lean:253:18: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  a ≥ 0
+where
+ a := ↑k
+ProbeRepairMinimaxKernelV1.lean:263:24: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  b ≥ 0
+  a ≥ 0
+  a ≥ 0
+  2*a - b ≤ -1
+  2*a - b ≤ -1
+where
+ a := ↑k
+ b := ↑zs.length
+ProbeRepairMinimaxKernelV1.lean:270:24: error: omega could not prove the goal:
 a possible counterexample may satisfy the constraints
   b ≥ 0
   a ≥ 0
   2*a - b ≥ 1
 where
- a := ↑n
- b := ↑(match { remaining := n, informed := false } with
-  | { remaining := 0, informed := informed } => 0
-  | { remaining := n.succ, informed := false } => 2 * (n + 1)
-  | { remaining := n.succ, informed := true } => 2 * n + 1)
-ProbeRepairMinimaxKernelV1.lean:242:12: error(lean.unknownIdentifier): Unknown constant `List.length_eq_zero.mp`
-ProbeRepairMinimaxKernelV1.lean:253:20: error: unsolved goals
-case succ.cons.probe.nil
-k : ℕ
-ih : ∀ (xs : List Role), run (initial k) xs = some goal → xs.length = 2 * k → xs = canonical k
-hwin : run (initial (k + 1)) [probe] = some goal
-hlen : 1 = 2 * (k + 1)
-⊢ [probe] = canonical (k + 1)
-ProbeRepairMinimaxKernelV1.lean:263:24: error: No goals to be solved
-ProbeRepairMinimaxKernelV1.lean:294:10: error: omega could not prove the goal:
-a possible counterexample may satisfy the constraints
-  c ≥ 0
-  b ≥ 0
-  b - 2*c ≤ -1
-  a ≥ 0
-where
- a := ↑(if k + 1 = 0 then 0 else 2 * (k + 1) - 1)
- b := ↑(roleChanges (repair :: canonical k))
- c := ↑k
-ProbeRepairMinimaxKernelV1.lean:293:40: warning: This simp argument is unused:
-  ih
-
-Hint: Omit it from the simp argument list.
-  simp [canonical, roleChanges,̵ ̵i̵h̵]
-
-Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+ a := ↑k
+ b := ↑zs.length
