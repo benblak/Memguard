@@ -1,0 +1,63 @@
+name: INSACERMO Probe-Repair Duality Kernel V1
+on:
+  push:
+    branches: [insacermo-probe-repair-duality-kernel-v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Kernel-check probe-repair formalization
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairDualityKernelV1.olean ProbeRepairDualityKernelV1.lean | tee PROBE_REPAIR_DUALITY_KERNEL_V1_OUTPUT.txt
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v ProbeRepairDualityKernelV1 | tee PROBE_REPAIR_DUALITY_KERNEL_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' ProbeRepairDualityKernelV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' ProbeRepairDualityKernelV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO PROBE-REPAIR DUALITY KERNEL V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Certification: Lean elaboration/kernel check + bundled leanchecker declaration replay.' \
+            'Targets: T1 obstruction-resolution cover equivalence; T2W fractional weak duality; T3 minimal-obstruction insufficiency under repair; T4 unbounded hybrid advantage.' \
+            'Scope note: strong LP duality is NOT claimed by this kernel because mathlib v4.32.1 does not expose a ready-made LP strong-duality theorem; only the universal weak-duality inequality is formalized here.' \
+            > PROBE_REPAIR_DUALITY_KERNEL_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/ProbeRepairDualityKernelV1.olean ./ProbeRepairDualityKernelV1.olean
+          sha256sum ProbeRepairDualityKernelV1.lean ProbeRepairDualityKernelV1.olean PROBE_REPAIR_DUALITY_KERNEL_V1_OUTPUT.txt PROBE_REPAIR_DUALITY_KERNEL_V1_LEANCHECKER.txt PROBE_REPAIR_DUALITY_KERNEL_V1_CERTIFICATE.txt > PROBE_REPAIR_DUALITY_KERNEL_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_PROBE_REPAIR_DUALITY_KERNEL_V1
+          path: |
+            lean_ci/ProbeRepairDualityKernelV1.lean
+            lean_ci/ProbeRepairDualityKernelV1.olean
+            lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_OUTPUT.txt
+            lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_CERTIFICATE.txt
+            lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_SHA256SUMS.txt
+          if-no-files-found: error
