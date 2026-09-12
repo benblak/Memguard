@@ -15,7 +15,7 @@ T3  Minimal-obstruction insufficiency under variable repair.
 T4  Unbounded hybrid PROBE+REPAIR advantage.
 
 Strong LP duality is deliberately not asserted here: mathlib v4.32.1 contains Farkas/separation
-machinery but no ready-made linear-programming strong-duality API.  The structural reduction and
+machinery but no ready-made linear-programming strong-duality API. The structural reduction and
 universal weak-duality inequality are proved without added axioms.
 -/
 
@@ -23,30 +23,23 @@ section StructuralCore
 
 variable {W A Y Q : Type*}
 
-/-- Worlds that remain indistinguishable from `s` after the current representation and all chosen
-Boolean probes. -/
 def FinalFiber (h : W → Y) (out : Q → W → Bool) (P : Set Q) (s : W) : Set W :=
   {t | h t = h s ∧ ∀ q, q ∈ P → out q t = out q s}
 
-/-- Actionability after adding capabilities in `C` and selecting probes `P`. -/
 def SafeAfter (Good : W → A → Prop) (C : Set A) (h : W → Y)
     (out : Q → W → Bool) (P : Set Q) : Prop :=
   ∀ s, ∃ a, a ∈ C ∧ ∀ t, t ∈ FinalFiber h out P s → Good t a
 
-/-- One action works for every world in `O`. -/
 def HasCommonAction (Good : W → A → Prop) (C : Set A) (O : Set W) : Prop :=
   ∃ a, a ∈ C ∧ ∀ t, t ∈ O → Good t a
 
-/-- A nonempty subset of one current information fiber with no common old action. -/
 def InitialObstruction (Good : W → A → Prop) (C : Set A) (h : W → Y)
     (O : Set W) : Prop :=
   O.Nonempty ∧ (∃ s₀, O ⊆ {t | h t = h s₀}) ∧ ¬ HasCommonAction Good C O
 
-/-- A selected probe resolves `O` by splitting two worlds in it. -/
 def Separated (out : Q → W → Bool) (P : Set Q) (O : Set W) : Prop :=
   ∃ q, q ∈ P ∧ ∃ s, s ∈ O ∧ ∃ t, t ∈ O ∧ out q s ≠ out q t
 
-/-- A newly available capability resolves `O` by covering it with one common action. -/
 def CoveredBy (Good : W → A → Prop) (R : Set A) (O : Set W) : Prop :=
   HasCommonAction Good R O
 
@@ -122,7 +115,7 @@ theorem fractional_probe_repair_weak_duality
     (∑ o, y o) ≤ ∑ o, y o * (∑ i, M o i * x i) := by
       exact Finset.sum_le_sum (fun o _ => hrow o)
     _ = ∑ i, x i * (∑ o, M o i * y o) := by
-      simp_rw [mul_sum, Finset.sum_mul]
+      simp_rw [Finset.mul_sum, Finset.sum_mul]
       rw [Finset.sum_comm]
       apply Finset.sum_congr rfl
       intro i hi
@@ -150,7 +143,6 @@ inductive A6
 
 open W3 A6
 
-/-- Old singleton actions and new pair-repair actions. -/
 def good3 : W3 → A6 → Bool
   | w1, a1 => true
   | w2, a2 => true
@@ -170,23 +162,27 @@ def pair13 : Finset W3 := {w1, w3}
 def pair23 : Finset W3 := {w2, w3}
 def triple3 : Finset W3 := {w1, w2, w3}
 
-def CommonFS (Caps : Finset A6) (O : Finset W3) : Prop :=
-  ∃ a ∈ Caps, ∀ w ∈ O, good3 w a = true
+/-- Boolean executable version of “some capability is common to all worlds in O”. -/
+def commonFSB (Caps : Finset A6) (O : Finset W3) : Bool :=
+  Caps.any (fun a => O.all (fun w => good3 w a))
 
-def MinimalOldObstructionFS (O : Finset W3) : Prop :=
-  O.Nonempty ∧ ¬ CommonFS old3 O ∧
-    ∀ T : Finset W3, T ⊂ O → T.Nonempty → CommonFS old3 T
+/-- Boolean executable minimal-old-obstruction predicate. -/
+def minimalOldObstructionFSB (O : Finset W3) : Bool :=
+  (!O.isEmpty) &&
+  !(commonFSB old3 O) &&
+  ((Finset.univ : Finset W3).powerset.all fun T =>
+    if T ⊂ O ∧ T.Nonempty then commonFSB old3 T else true)
 
-/-- T3 — all three old minimal pair obstructions can be repaired individually, while the unchanged
-three-world fiber still has no single common action after adding all three pair repairs. -/
+/-- T3 — all three old minimal pair obstructions are individually repairable while the unchanged
+three-world fiber still has no single common action after all pair repairs are added. -/
 theorem minimal_obstructions_insufficient_under_repair :
-    MinimalOldObstructionFS pair12 ∧
-    MinimalOldObstructionFS pair13 ∧
-    MinimalOldObstructionFS pair23 ∧
-    CommonFS repairs3 pair12 ∧
-    CommonFS repairs3 pair13 ∧
-    CommonFS repairs3 pair23 ∧
-    ¬ CommonFS (old3 ∪ repairs3) triple3 := by
+    minimalOldObstructionFSB pair12 = true ∧
+    minimalOldObstructionFSB pair13 = true ∧
+    minimalOldObstructionFSB pair23 = true ∧
+    commonFSB repairs3 pair12 = true ∧
+    commonFSB repairs3 pair13 = true ∧
+    commonFSB repairs3 pair23 = true ∧
+    commonFSB (old3 ∪ repairs3) triple3 = false := by
   native_decide
 
 end MinimalObstructionCounterexample
@@ -234,7 +230,7 @@ def interventionCost (M : ℝ) : Intervention → ℝ
   | repairY => 1
 
 def planCost (M : ℝ) (S : Finset Intervention) : ℝ :=
-  ∑ i in S, interventionCost M i
+  S.sum (fun i => interventionCost M i)
 
 def mixedPlan : Finset Intervention := {probeX, repairY}
 
@@ -303,8 +299,7 @@ lemma repairOnly_cover_cost (M : ℝ) (S : Finset Intervention)
   simp [planCost, interventionCost]
   ring
 
-/-- T4 — the advantage of allowing a mixed PROBE+REPAIR plan over either pure family can exceed
-any prescribed factor. -/
+/-- T4 — mixed PROBE+REPAIR can beat either pure family by an arbitrarily large factor. -/
 theorem unbounded_hybrid_advantage (K : ℕ) :
     ∃ M : ℝ,
       1 ≤ M ∧
@@ -314,7 +309,8 @@ theorem unbounded_hybrid_advantage (K : ℕ) :
       planCost M mixedPlan = 2 ∧
       (K : ℝ) * planCost M mixedPlan < M + 1 := by
   refine ⟨2 * (K : ℝ) + 1, ?_, ?_, ?_, mixedPlan_covers, mixedPlan_cost _, ?_⟩
-  · positivity
+  · have hK : 0 ≤ (K : ℝ) := by positivity
+    linarith
   · intro S hp hc
     exact probeOnly_cover_cost _ S hp hc
   · intro S hr hc
