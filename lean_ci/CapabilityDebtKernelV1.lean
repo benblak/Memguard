@@ -59,11 +59,11 @@ theorem not_admissibleWithCapability_iff_exists_witness
   constructor
   · intro hnot
     by_contra hnone
-    push_neg at hnone
     apply hnot
     intro q hq hx
     by_contra hlost
-    exact hnone q hq hx hlost
+    apply hnone
+    exact ⟨q, hq, hx, hlost⟩
   · rintro ⟨q, hq, hx, hlost⟩ hadm
     exact hlost (hadm q hq hx)
 
