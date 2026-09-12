@@ -65,13 +65,13 @@ def Step : State → Act → State
 def LocalSafe (s : State) : Prop := ∃ a, Legal s a
 
 @[simp] theorem localSafe_start : LocalSafe start := by
-  exact ⟨wait, by simp [LocalSafe, Legal]⟩
+  exact ⟨wait, by simp [Legal]⟩
 
 @[simp] theorem localSafe_dead : LocalSafe dead := by
-  exact ⟨wait, by simp [LocalSafe, Legal]⟩
+  exact ⟨wait, by simp [Legal]⟩
 
 @[simp] theorem localSafe_goal : LocalSafe goal := by
-  exact ⟨wait, by simp [LocalSafe, Legal]⟩
+  exact ⟨wait, by simp [Legal]⟩
 
 /-- Reachability relation for finite traces. -/
 inductive Reach : State → State → Prop
@@ -85,8 +85,8 @@ def FutureSafe (s : State) : Prop := Reach s goal
 theorem futureSafe_start : FutureSafe start := by
   unfold FutureSafe
   have h1 : Reach start bridge := by
-    exact Reach.step (Reach.refl start) (by simp [Legal]) (by rfl)
-  exact Reach.step h1 (by simp [Legal]) (by rfl)
+    exact Reach.step (a := advance) (Reach.refl start) (by simp [Legal]) (by rfl)
+  exact Reach.step (a := advance) h1 (by simp [Legal]) (by rfl)
 
 /-- Goal trivially satisfies the future contract. -/
 theorem futureSafe_goal : FutureSafe goal := by
@@ -94,7 +94,10 @@ theorem futureSafe_goal : FutureSafe goal := by
 
 /-- Every legal step from dead stays dead. -/
 theorem legal_step_from_dead_stays_dead {a : Act} (h : Legal dead a) : Step dead a = dead := by
-  cases a <;> simp [Legal] at h ⊢
+  cases a with
+  | wait => rfl
+  | advance => simp [Legal] at h
+  | destroy => simp [Legal] at h
 
 /-- Dead cannot reach goal, despite being locally safe. -/
 theorem not_futureSafe_dead : ¬ FutureSafe dead := by
@@ -103,14 +106,16 @@ theorem not_futureSafe_dead : ¬ FutureSafe dead := by
   have aux : ∀ {t}, Reach dead t → t = dead := by
     intro t hr
     induction hr with
-    | refl s => rfl
-    | @step s t u a hreach hlegal hstep ih =>
+    | refl => rfl
+    | @step t u a hreach hlegal hstep ih =>
         have ht : t = dead := ih
         subst t
         have hs : Step dead a = dead := legal_step_from_dead_stays_dead hlegal
-        simpa [hs] using hstep.symm
-  have : goal = dead := aux h
-  cases this
+        calc
+          u = Step dead a := hstep.symm
+          _ = dead := hs
+  have hgoal : goal = dead := aux h
+  cases hgoal
 
 /-- The destructive transition keeps immediate actionability. -/
 theorem destroy_preserves_local_safety :
