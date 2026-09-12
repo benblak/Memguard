@@ -1,0 +1,86 @@
+name: INSACERMO Interaction-Depth Bridge V1
+on:
+  push:
+    branches: [insacermo-interaction-depth-bridge-v1]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+      - name: Build minimax dependencies
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env lean -o .lake/build/lib/lean/ProbeRepairAlternationKernelV1.olean ProbeRepairAlternationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairRealizationKernelV1.olean ProbeRepairRealizationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairMinimaxKernelV1.olean ProbeRepairMinimaxKernelV1.lean
+      - name: Kernel-check interaction-depth bridge
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/InteractionDepthBridgeV1.olean InteractionDepthBridgeV1.lean 2>&1 | tee INTERACTION_DEPTH_BRIDGE_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/INTERACTION_DEPTH_BRIDGE_V1_OUTPUT.txt lean_ci/INTERACTION_DEPTH_BRIDGE_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/INTERACTION_DEPTH_BRIDGE_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture interaction-depth bridge diagnostics [skip ci]' || true
+          git push
+          exit 1
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v InteractionDepthBridgeV1 | tee INTERACTION_DEPTH_BRIDGE_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' InteractionDepthBridgeV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' InteractionDepthBridgeV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO INTERACTION-DEPTH BRIDGE V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Targets: interaction-depth monotonicity under subsequences; alternating dependency-chain lower bound; exact depth of hidden-vector optimum; no finite universal optimal interaction-depth bound.' \
+            'Scope: bridge theorem for PROBE/REPAIR role traces. It does not claim novelty for precedence-constrained class sequencing or setup minimization.' \
+            > INTERACTION_DEPTH_BRIDGE_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/InteractionDepthBridgeV1.olean ./InteractionDepthBridgeV1.olean
+          sha256sum InteractionDepthBridgeV1.lean InteractionDepthBridgeV1.olean INTERACTION_DEPTH_BRIDGE_V1_OUTPUT.txt INTERACTION_DEPTH_BRIDGE_V1_LEANCHECKER.txt INTERACTION_DEPTH_BRIDGE_V1_CERTIFICATE.txt > INTERACTION_DEPTH_BRIDGE_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_INTERACTION_DEPTH_BRIDGE_V1
+          path: |
+            lean_ci/InteractionDepthBridgeV1.lean
+            lean_ci/InteractionDepthBridgeV1.olean
+            lean_ci/INTERACTION_DEPTH_BRIDGE_V1_OUTPUT.txt
+            lean_ci/INTERACTION_DEPTH_BRIDGE_V1_LEANCHECKER.txt
+            lean_ci/INTERACTION_DEPTH_BRIDGE_V1_CERTIFICATE.txt
+            lean_ci/INTERACTION_DEPTH_BRIDGE_V1_SHA256SUMS.txt
+          if-no-files-found: error
