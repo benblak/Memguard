@@ -157,6 +157,7 @@ theorem need_le_succ_need_of_step {s s' : PlannerState} {a : Role}
               simp [step] at h
               subst s'
               simp [need]
+              omega
           | repair =>
               simp [step] at h
       | true =>
@@ -250,8 +251,10 @@ theorem optimal_trace_eq_canonical (k : Nat) (xs : List Role)
           | probe =>
               cases ys with
               | nil =>
-                  omega
+                  simp at hlen
               | cons b zs =>
+                  have hlen' : zs.length + 2 = 2 * (k + 1) := by
+                    simpa using hlen
                   cases b with
                   | probe =>
                       have hzwin : run ⟨k + 1, true⟩ zs = some goal := by
