@@ -1,0 +1,87 @@
+name: INSACERMO Local-Temporal Separation V1
+on:
+  push:
+    branches: [insacermo-local-temporal-separation-v1]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+      - name: Build verified dependencies
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env lean -o .lake/build/lib/lean/ProbeRepairAlternationKernelV1.olean ProbeRepairAlternationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairRealizationKernelV1.olean ProbeRepairRealizationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairMinimaxKernelV1.olean ProbeRepairMinimaxKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/InteractionDepthBridgeV1.olean InteractionDepthBridgeV1.lean
+      - name: Kernel-check local-temporal separation
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/LocalTemporalSeparationV1.olean LocalTemporalSeparationV1.lean 2>&1 | tee LOCAL_TEMPORAL_SEPARATION_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_OUTPUT.txt lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture local-temporal separation diagnostics [skip ci]' || true
+          git push
+          exit 1
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v LocalTemporalSeparationV1 | tee LOCAL_TEMPORAL_SEPARATION_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' LocalTemporalSeparationV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' LocalTemporalSeparationV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO LOCAL-TEMPORAL SEPARATION V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Targets: binary minimal local certificates for every non-actionable belief in the hidden-vector repair model; unbounded optimal interaction depth in the same family.' \
+            'Interpretation: uniformly small local actionability certificates do not imply bounded temporal PROBE/REPAIR interaction depth.' \
+            > LOCAL_TEMPORAL_SEPARATION_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/LocalTemporalSeparationV1.olean ./LocalTemporalSeparationV1.olean
+          sha256sum LocalTemporalSeparationV1.lean LocalTemporalSeparationV1.olean LOCAL_TEMPORAL_SEPARATION_V1_OUTPUT.txt LOCAL_TEMPORAL_SEPARATION_V1_LEANCHECKER.txt LOCAL_TEMPORAL_SEPARATION_V1_CERTIFICATE.txt > LOCAL_TEMPORAL_SEPARATION_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_LOCAL_TEMPORAL_SEPARATION_V1
+          path: |
+            lean_ci/LocalTemporalSeparationV1.lean
+            lean_ci/LocalTemporalSeparationV1.olean
+            lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_OUTPUT.txt
+            lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_LEANCHECKER.txt
+            lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_CERTIFICATE.txt
+            lean_ci/LOCAL_TEMPORAL_SEPARATION_V1_SHA256SUMS.txt
+          if-no-files-found: error
