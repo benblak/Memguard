@@ -60,23 +60,26 @@ theorem inadmissible_of_required_guarantee_destroyed
 
 /-- Under the present-only contract, destroyNow is admissible: local actionability survives. -/
 theorem destroyNow_admissible_present :
-    AdmissibleDestruction WinTemporal PresentContract destroyNow start := by
+    AdmissibleDestruction WinTemporal PresentContract destroyNow State.start := by
   intro q hq _hx
   have hqi : q = immediate := by
     simpa [PresentContract] using hq
   subst q
-  simpa [WinTemporal, destroyNow] using localSafe_dead
+  change LocalSafe State.dead
+  exact localSafe_dead
 
 /-- Under the extended temporal contract, the exact same destruction is inadmissible because the
 futureGoal guarantee is lost. -/
 theorem destroyNow_inadmissible_future :
-    ¬ AdmissibleDestruction WinTemporal FutureContract destroyNow start := by
+    ¬ AdmissibleDestruction WinTemporal FutureContract destroyNow State.start := by
   apply inadmissible_of_required_guarantee_destroyed
-    WinTemporal FutureContract destroyNow start futureGoal
+    WinTemporal FutureContract destroyNow State.start futureGoal
   · simp [FutureContract]
-  · simpa [WinTemporal] using futureSafe_start
+  · change FutureSafe State.start
+    exact futureSafe_start
   · intro h
-    exact not_futureSafe_dead (by simpa [WinTemporal, destroyNow] using h)
+    change FutureSafe State.dead at h
+    exact not_futureSafe_dead h
 
 /-- Contract strengthening can only reduce the admissible-destruction relation. -/
 theorem future_admissible_implies_present_admissible
@@ -88,8 +91,8 @@ theorem future_admissible_implies_present_admissible
 
 /-- Strictness witness: the implication cannot be reversed in general. -/
 theorem present_admissibility_does_not_imply_future_admissibility :
-    AdmissibleDestruction WinTemporal PresentContract destroyNow start ∧
-    ¬ AdmissibleDestruction WinTemporal FutureContract destroyNow start := by
+    AdmissibleDestruction WinTemporal PresentContract destroyNow State.start ∧
+    ¬ AdmissibleDestruction WinTemporal FutureContract destroyNow State.start := by
   exact ⟨destroyNow_admissible_present, destroyNow_inadmissible_future⟩
 
 /-- Main result: adding a future obligation can revoke a previously valid right to destroy. -/
@@ -97,8 +100,8 @@ theorem contract_extension_can_revoke_destruction_right :
     PresentContract ⊆ FutureContract ∧
     futureGoal ∉ PresentContract ∧
     futureGoal ∈ FutureContract ∧
-    AdmissibleDestruction WinTemporal PresentContract destroyNow start ∧
-    ¬ AdmissibleDestruction WinTemporal FutureContract destroyNow start := by
+    AdmissibleDestruction WinTemporal PresentContract destroyNow State.start ∧
+    ¬ AdmissibleDestruction WinTemporal FutureContract destroyNow State.start := by
   exact ⟨presentContract_subset_futureContract,
     futureGoal_added_by_extension.1,
     futureGoal_added_by_extension.2,
@@ -117,7 +120,7 @@ theorem admissibility_relation_strictly_shrinks_under_extension :
   constructor
   · intro d s h
     exact future_admissible_implies_present_admissible d s h
-  · exact ⟨destroyNow, start,
+  · exact ⟨destroyNow, State.start,
       destroyNow_admissible_present,
       destroyNow_inadmissible_future⟩
 
