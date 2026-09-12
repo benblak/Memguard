@@ -4,7 +4,7 @@ on:
     branches: [insacermo-probe-repair-duality-kernel-v1]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,14 +14,31 @@ jobs:
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Kernel-check probe-repair formalization
+      - name: Prepare mathlib
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
           lake exe cache get
           mkdir -p .lake/build/lib/lean
-          lake env lean -o .lake/build/lib/lean/ProbeRepairDualityKernelV1.olean ProbeRepairDualityKernelV1.lean | tee PROBE_REPAIR_DUALITY_KERNEL_V1_OUTPUT.txt
+      - name: Kernel-check probe-repair formalization
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/ProbeRepairDualityKernelV1.olean ProbeRepairDualityKernelV1.lean 2>&1 | tee PROBE_REPAIR_DUALITY_KERNEL_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_OUTPUT.txt lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/PROBE_REPAIR_DUALITY_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture Lean probe-repair diagnostics [skip ci]' || true
+          git push
+          exit 1
       - name: Bundled leanchecker independent replay
         working-directory: lean_ci
         run: |
