@@ -30,8 +30,7 @@ def switchesFrom : Role → List Role → Nat
   | _, [] => 0
   | prev, x :: xs => jump prev x + switchesFrom x xs
 
-/-- Planner interaction depth: adjacent role switches, with no cost for the first role.  Taking the
-minimum over the two possible virtual previous roles removes any artificial initial setup cost. -/
+/-- Planner interaction depth: adjacent role switches, with no cost for the first role. -/
 def interactionDepth (xs : List Role) : Nat :=
   Nat.min (switchesFrom probe xs) (switchesFrom repair xs)
 
@@ -50,9 +49,9 @@ theorem switchesFrom_cons_self (x : Role) (xs : List Role) :
   | cons x ys =>
       cases x with
       | probe =>
-          simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self, roleChanges]
+          simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self]
       | repair =>
-          simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self, roleChanges]
+          simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self]
 
 /-- Triangle inequality for one skipped binary role. -/
 theorem switchesFrom_triangle (p a : Role) (xs : List Role) :
@@ -70,7 +69,7 @@ theorem switchesFrom_mono_sublist {ys xs : List Role}
   | slnil => simp [switchesFrom]
   | @cons l₁ l₂ a h ih =>
       exact le_trans (ih prev) (switchesFrom_triangle prev a l₂)
-  | @cons₂ l₁ l₂ a h ih =>
+  | @cons_cons l₁ l₂ a h ih =>
       simp only [switchesFrom]
       exact Nat.add_le_add_left (ih a) (jump prev a)
 
@@ -81,7 +80,7 @@ theorem interactionDepth_mono_sublist {ys xs : List Role}
   unfold interactionDepth
   have hp := switchesFrom_mono_sublist h probe
   have hr := switchesFrom_mono_sublist h repair
-  omega
+  exact min_le_min hp hr
 
 /-- Extensional definition of a fully alternating role trace: every possible boundary is a switch. -/
 def Alternating (xs : List Role) : Prop :=
@@ -111,7 +110,6 @@ theorem canonical_alternating (k : Nat) : Alternating (canonical k) := by
   | succ k =>
       unfold Alternating
       rw [hidden_vector_exact_interaction_depth (k + 1) (by omega), canonical_length]
-      omega
 
 /-- Every optimal trace in the hidden-vector family has the same exact interaction depth. -/
 theorem every_hidden_vector_optimum_has_exact_depth
