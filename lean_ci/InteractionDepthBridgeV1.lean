@@ -10,12 +10,11 @@ This file does NOT claim novelty for precedence-constrained class sequencing its
 It formalizes the INSACERMO semantic bridge from causal PROBE/REPAIR dependencies to a
 lower bound on planner interaction depth.
 
-The combinatorial core is deliberately small:
-* a dependency witness is a subsequence of the executed role trace;
-* deleting interventions cannot increase the number of adjacent role changes;
-* therefore an alternating dependency witness of length m forces at least m-1 role changes;
-* the hidden-vector minimax family from ProbeRepairMinimaxKernelV1 realizes witnesses
-  of arbitrary length and attains the bound exactly on its unique optimal trace.
+Core statements:
+* interaction depth is monotone under deleting interventions from a binary role trace;
+* therefore any alternating causal dependency witness of length m forces at least m-1 switches;
+* the hidden-vector minimax family realizes arbitrarily long such witnesses and attains the bound
+  exactly on every optimal trace.
 -/
 
 abbrev Role := InsacermoProbeRepairMinimax.Role
@@ -23,107 +22,96 @@ abbrev Role := InsacermoProbeRepairMinimax.Role
 open InsacermoProbeRepairMinimax
 open Role
 
-/-- Adjacent changes of intervention role. -/
-def interactionDepth : List Role → Nat
-  | [] => 0
-  | [_] => 0
-  | a :: b :: xs => (if a = b then 0 else 1) + interactionDepth (b :: xs)
+/-- Unit switching cost between two intervention roles. -/
+def jump (a b : Role) : Nat := if a = b then 0 else 1
+
+/-- Number of role switches when a trace is entered with previous role `prev`. -/
+def switchesFrom : Role → List Role → Nat
+  | _, [] => 0
+  | prev, x :: xs => jump prev x + switchesFrom x xs
+
+/-- Planner interaction depth: adjacent role switches, with no cost for the first role.  Taking the
+minimum over the two possible virtual previous roles removes any artificial initial setup cost. -/
+def interactionDepth (xs : List Role) : Nat :=
+  Nat.min (switchesFrom probe xs) (switchesFrom repair xs)
+
+/-- Existing minimax-kernel `roleChanges` agrees exactly with the bridge definition. -/
+theorem switchesFrom_cons_self (x : Role) (xs : List Role) :
+    switchesFrom x xs = roleChanges (x :: xs) := by
+  induction xs generalizing x with
+  | nil => simp [switchesFrom, roleChanges]
+  | cons y ys ih =>
+      simp [switchesFrom, roleChanges, jump, ih]
 
 @[simp] theorem interactionDepth_eq_roleChanges (xs : List Role) :
     interactionDepth xs = roleChanges xs := by
-  induction xs with
-  | nil => rfl
-  | cons a xs =>
-      cases xs with
-      | nil => rfl
-      | cons b ys =>
-          simp [interactionDepth, roleChanges, *]
-
-/-- Removing one interior role cannot increase adjacent-change count. -/
-theorem erase_middle_le (a b : Role) (xs : List Role) :
-    interactionDepth (a :: xs) ≤ interactionDepth (a :: b :: xs) := by
-  rw [interactionDepth_eq_roleChanges, interactionDepth_eq_roleChanges]
   cases xs with
-  | nil =>
-      simp [roleChanges]
-  | cons c ys =>
-      cases a <;> cases b <;> cases c <;> simp [roleChanges] <;> omega
+  | nil => simp [interactionDepth, switchesFrom, roleChanges]
+  | cons x ys =>
+      cases x with
+      | probe =>
+          simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self, roleChanges]
+      | repair =>
+          simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self, roleChanges]
 
-/-- Interaction depth is monotone under taking a list sublist (subsequence). -/
-theorem interactionDepth_mono_sublist {ys xs : List Role} (h : ys <+ xs) :
+/-- Triangle inequality for one skipped binary role. -/
+theorem switchesFrom_triangle (p a : Role) (xs : List Role) :
+    switchesFrom p xs ≤ jump p a + switchesFrom a xs := by
+  cases xs with
+  | nil => simp [switchesFrom, jump]
+  | cons x ys =>
+      cases p <;> cases a <;> cases x <;> simp [switchesFrom, jump] <;> omega
+
+/-- With a fixed virtual previous role, deleting trace elements cannot increase switching cost. -/
+theorem switchesFrom_mono_sublist {ys xs : List Role}
+    (h : List.Sublist ys xs) (prev : Role) :
+    switchesFrom prev ys ≤ switchesFrom prev xs := by
+  induction h generalizing prev with
+  | slnil => simp [switchesFrom]
+  | @cons l₁ l₂ a h ih =>
+      exact le_trans (ih prev) (switchesFrom_triangle prev a l₂)
+  | @cons₂ l₁ l₂ a h ih =>
+      simp only [switchesFrom]
+      exact Nat.add_le_add_left (ih a) (jump prev a)
+
+/-- Interaction depth is monotone under taking any subsequence. -/
+theorem interactionDepth_mono_sublist {ys xs : List Role}
+    (h : List.Sublist ys xs) :
     interactionDepth ys ≤ interactionDepth xs := by
-  induction h with
-  | slnil => simp [interactionDepth]
-  | @cons a l₁ l₂ h ih =>
-      cases l₁ with
-      | nil => simp [interactionDepth]
-      | cons b bs =>
-          cases l₂ with
-          | nil => cases h
-          | cons c cs =>
-              simp only [interactionDepth]
-              have ht : interactionDepth (b :: bs) ≤ interactionDepth (c :: cs) := ih
-              cases a <;> cases b <;> cases c <;> simp_all <;> omega
-  | @cons₂ a l₁ l₂ h ih =>
-      cases l₁ with
-      | nil =>
-          cases l₂ with
-          | nil => simp [interactionDepth]
-          | cons c cs => simp [interactionDepth]
-      | cons b bs =>
-          cases l₂ with
-          | nil => cases h
-          | cons c cs =>
-              simp only [interactionDepth]
-              have ht : interactionDepth (b :: bs) ≤ interactionDepth (c :: cs) := ih
-              cases a <;> cases b <;> cases c <;> simp_all <;> omega
+  unfold interactionDepth
+  have hp := switchesFrom_mono_sublist h probe
+  have hr := switchesFrom_mono_sublist h repair
+  omega
 
-/-- A role trace alternates if every adjacent pair differs. -/
-def Alternating : List Role → Prop
-  | [] => True
-  | [_] => True
-  | a :: b :: xs => a ≠ b ∧ Alternating (b :: xs)
-
-/-- An alternating trace changes role at every boundary. -/
-theorem interactionDepth_eq_length_sub_one_of_alternating
-    (xs : List Role) (h : Alternating xs) :
-    interactionDepth xs = xs.length - 1 := by
-  induction xs with
-  | nil => simp [interactionDepth]
-  | cons a xs ih =>
-      cases xs with
-      | nil => simp [interactionDepth]
-      | cons b ys =>
-          simp only [Alternating] at h
-          rcases h with ⟨hab, htail⟩
-          have hi := ih htail
-          simp [interactionDepth, hab, hi]
-          omega
+/-- Extensional definition of a fully alternating role trace: every possible boundary is a switch. -/
+def Alternating (xs : List Role) : Prop :=
+  interactionDepth xs = xs.length - 1
 
 /-- Causal-chain lower bound.
-If a required alternating PROBE/REPAIR dependency chain occurs as a subsequence of a legal
-execution, that execution needs at least one role change per chain boundary. -/
+If an alternating required PROBE/REPAIR dependency chain occurs as a subsequence of a legal
+execution, the full execution pays at least one role switch per dependency-chain boundary. -/
 theorem alternating_dependency_chain_lower_bound
     {chain trace : List Role}
-    (hsub : chain <+ trace)
+    (hsub : List.Sublist chain trace)
     (halt : Alternating chain) :
     chain.length - 1 ≤ interactionDepth trace := by
-  rw [← interactionDepth_eq_length_sub_one_of_alternating chain halt]
+  rw [← halt]
   exact interactionDepth_mono_sublist hsub
-
-/-- Canonical hidden-vector optimal traces are alternating. -/
-theorem canonical_alternating (k : Nat) : Alternating (canonical k) := by
-  induction k with
-  | zero => trivial
-  | succ k ih =>
-      simp [canonical, Alternating]
-      exact ih
 
 /-- The previous minimax family attains the causal-chain bound exactly. -/
 theorem hidden_vector_exact_interaction_depth (k : Nat) (hk : 0 < k) :
     interactionDepth (canonical k) = 2 * k - 1 := by
   rw [interactionDepth_eq_roleChanges]
   exact optimal_trace_role_changes k (canonical k) hk (canonical_wins k) (canonical_length k)
+
+/-- Canonical hidden-vector optimal traces are alternating in the bridge sense. -/
+theorem canonical_alternating (k : Nat) : Alternating (canonical k) := by
+  cases k with
+  | zero => simp [Alternating, interactionDepth, switchesFrom, canonical]
+  | succ k =>
+      unfold Alternating
+      rw [hidden_vector_exact_interaction_depth (k + 1) (by omega), canonical_length]
+      omega
 
 /-- Every optimal trace in the hidden-vector family has the same exact interaction depth. -/
 theorem every_hidden_vector_optimum_has_exact_depth
@@ -143,6 +131,7 @@ theorem no_finite_universal_interaction_depth_bound (K : Nat) :
         K < interactionDepth xs := by
   rcases unbounded_optimal_interaction_depth K with ⟨k, hk, xs, hwin, hlen, hK⟩
   refine ⟨k, hk, xs, hwin, hlen, ?_⟩
-  simpa [interactionDepth_eq_roleChanges] using hK
+  rw [interactionDepth_eq_roleChanges]
+  exact hK
 
 end InsacermoInteractionDepthBridge
