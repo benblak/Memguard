@@ -1,0 +1,88 @@
+name: INSACERMO Joint Resolution-Causal Planner V1
+on:
+  push:
+    branches: [insacermo-joint-resolution-causal-planner-v1]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+      - name: Build verified dependencies
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env lean -o .lake/build/lib/lean/ProbeRepairAlternationKernelV1.olean ProbeRepairAlternationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairRealizationKernelV1.olean ProbeRepairRealizationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/ProbeRepairMinimaxKernelV1.olean ProbeRepairMinimaxKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/InteractionDepthBridgeV1.olean InteractionDepthBridgeV1.lean
+          lake env lean -o .lake/build/lib/lean/LocalTemporalSeparationV1.olean LocalTemporalSeparationV1.lean
+      - name: Kernel-check joint planner separation
+        id: leancheck
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/JointResolutionCausalPlannerV1.olean JointResolutionCausalPlannerV1.lean 2>&1 | tee JOINT_RESOLUTION_CAUSAL_PLANNER_V1_OUTPUT.txt
+      - name: Persist diagnostics if Lean fails
+        if: steps.leancheck.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_OUTPUT.txt lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture joint planner diagnostics [skip ci]' || true
+          git push
+          exit 1
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v JointResolutionCausalPlannerV1 | tee JOINT_RESOLUTION_CAUSAL_PLANNER_V1_LEANCHECKER.txt
+      - name: Verify no placeholders or custom axioms
+        working-directory: lean_ci
+        run: |
+          if grep -nE '\b(sorry|admit)\b' JointResolutionCausalPlannerV1.lean; then exit 1; fi
+          if grep -nE '^\s*axiom\b' JointResolutionCausalPlannerV1.lean; then exit 1; fi
+          echo 'No sorry/admit/custom axiom placeholders found.'
+      - name: Build certification receipt
+        working-directory: lean_ci
+        run: |
+          printf '%s\n' \
+            'INSACERMO JOINT RESOLUTION-CAUSAL PLANNER V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Targets: cost-only resolution strictly prefers local plan; joint cost+interaction objective at lambda=2 prefers global repair; exact unbounded additive decomposition regret; one-unit base-cost premium buys unbounded interaction-depth reduction; no contract-independent multiplicative factor.' \
+            'Scope: finite deterministic two-alternative family built on the already verified hidden-vector minimax planner. This is a separation theorem for planner decomposition, not a new engine law.' \
+            > JOINT_RESOLUTION_CAUSAL_PLANNER_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/JointResolutionCausalPlannerV1.olean ./JointResolutionCausalPlannerV1.olean
+          sha256sum JointResolutionCausalPlannerV1.lean JointResolutionCausalPlannerV1.olean JOINT_RESOLUTION_CAUSAL_PLANNER_V1_OUTPUT.txt JOINT_RESOLUTION_CAUSAL_PLANNER_V1_LEANCHECKER.txt JOINT_RESOLUTION_CAUSAL_PLANNER_V1_CERTIFICATE.txt > JOINT_RESOLUTION_CAUSAL_PLANNER_V1_SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_JOINT_RESOLUTION_CAUSAL_PLANNER_V1
+          path: |
+            lean_ci/JointResolutionCausalPlannerV1.lean
+            lean_ci/JointResolutionCausalPlannerV1.olean
+            lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_OUTPUT.txt
+            lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_LEANCHECKER.txt
+            lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_CERTIFICATE.txt
+            lean_ci/JOINT_RESOLUTION_CAUSAL_PLANNER_V1_SHA256SUMS.txt
+          if-no-files-found: error
