@@ -1,0 +1,25 @@
+InteractionDepthBridgeV1.lean:53:67: error: unexpected token '+'; expected term
+InteractionDepthBridgeV1.lean:101:10: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  e ≥ 1
+  d ≥ 0
+  c ≥ 0
+  c - d ≥ 1
+where
+ c := ↑ys.length
+ d := ↑(roleChanges (b :: ys))
+ e := ↑(b :: ys).length
+InteractionDepthBridgeV1.lean:100:39: warning: This simp argument is unused:
+  hi
+
+Hint: Omit it from the simp argument list.
+  simp [interactionDepth, hab,̵ ̵h̵i̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+InteractionDepthBridgeV1.lean:108:19: error: unexpected token '+'; expected term
+InteractionDepthBridgeV1.lean:120:6: error: Type mismatch
+  ih
+has type
+  Alternating (canonical k)
+but is expected to have type
+  Alternating (repair :: canonical k)
