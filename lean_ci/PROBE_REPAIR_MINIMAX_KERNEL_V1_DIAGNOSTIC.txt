@@ -3,30 +3,16 @@ ProbeRepairMinimaxKernelV1.lean:126:5: warning: Variable name `n` is not explici
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-ProbeRepairMinimaxKernelV1.lean:156:18: error: unsolved goals
-case succ.false.probe
-n : ℕ
-⊢ 2 * (n + 1) ≤ 2 * n + 1 + 1
-ProbeRepairMinimaxKernelV1.lean:253:18: error: omega could not prove the goal:
-a possible counterexample may satisfy the constraints
-  a ≥ 0
-where
- a := ↑k
-ProbeRepairMinimaxKernelV1.lean:263:24: error: omega could not prove the goal:
-a possible counterexample may satisfy the constraints
-  b ≥ 0
-  a ≥ 0
-  a ≥ 0
-  2*a - b ≤ -1
-  2*a - b ≤ -1
-where
- a := ↑k
- b := ↑zs.length
-ProbeRepairMinimaxKernelV1.lean:270:24: error: omega could not prove the goal:
-a possible counterexample may satisfy the constraints
-  b ≥ 0
-  a ≥ 0
-  2*a - b ≥ 1
-where
- a := ↑k
- b := ↑zs.length
+ProbeRepairMinimaxKernelV1.lean:172:42: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+ProbeRepairMinimaxKernelV1.lean:172:42: warning: 'omega' tactic does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+ProbeRepairMinimaxKernelV1.lean:253:20: error: unsolved goals
+case succ.cons.probe.nil
+k : ℕ
+ih : ∀ (xs : List Role), run (initial k) xs = some goal → xs.length = 2 * k → xs = canonical k
+hwin : run (initial (k + 1)) [probe] = some goal
+hlen : 1 = 2 * (k + 1)
+⊢ [probe] = canonical (k + 1)
