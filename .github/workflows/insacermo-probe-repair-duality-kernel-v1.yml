@@ -14,10 +14,11 @@ jobs:
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Prepare mathlib
+      - name: Prepare exact audited source and mathlib
         working-directory: lean_ci
         run: |
           set -euo pipefail
+          python patch_probe_repair_kernel_v1.py
           lake update
           lake exe cache get
           mkdir -p .lake/build/lib/lean
