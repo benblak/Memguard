@@ -69,7 +69,7 @@ jobs:
             "Commit: ${GITHUB_SHA}" \
             'Lean: 4.32.1' \
             'mathlib: v4.32.1' \
-            'Targets: cost-only resolution strictly prefers local plan; joint cost+interaction objective at lambda=2 prefers global repair; exact unbounded additive decomposition regret; one-unit base-cost premium buys unbounded interaction-depth reduction; no contract-independent multiplicative factor.' \
+            'Targets: cost-only resolution strictly prefers local plan; already at unit switch penalty lambda=1 the joint objective prefers global repair for k>=2; exact unbounded additive decomposition regret at fixed unit penalty; one-unit base-cost premium buys unbounded interaction-depth reduction; local/global Pareto tradeoff; no contract-independent multiplicative factor.' \
             'Scope: finite deterministic two-alternative family built on the already verified hidden-vector minimax planner. This is a separation theorem for planner decomposition, not a new engine law.' \
             > JOINT_RESOLUTION_CAUSAL_PLANNER_V1_CERTIFICATE.txt
           cp .lake/build/lib/lean/JointResolutionCausalPlannerV1.olean ./JointResolutionCausalPlannerV1.olean
