@@ -1,0 +1,33 @@
+DestructionDebtKernelV1.lean:142:57: error: unsolved goals
+⊢ {left, right} ⊆ capSet expandedFine.capMode
+DestructionDebtKernelV1.lean:142:75: warning: This simp argument is unused:
+  expandedCap
+
+Hint: Omit it from the simp argument list.
+  simp [baseCap,̵ ̵e̵x̵p̵a̵n̵d̵e̵d̵C̵a̵p̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+DestructionDebtKernelV1.lean:154:2: error: Type mismatch: After simplification, term
+  safe_expandedCoarse
+ has type
+  True
+but is expected to have type
+  SafeConfig { capMode := expanded, repMode := coarse }
+DestructionDebtKernelV1.lean:160:75: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+DestructionDebtKernelV1.lean:161:30: error: Type mismatch: After simplification, term
+  htarget
+ has type
+  SafeConfig { capMode := base, repMode := coarse }
+but is expected to have type
+  False
+DestructionDebtKernelV1.lean:169:34: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+DestructionDebtKernelV1.lean:170:30: error: Type mismatch: After simplification, term
+  htarget
+ has type
+  SafeConfig { capMode := base, repMode := coarse }
+but is expected to have type
+  False
