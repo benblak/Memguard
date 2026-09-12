@@ -14,7 +14,7 @@ jobs:
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Materialize fixes from kernel audit 1
+      - name: Materialize fixes from kernel audits
         working-directory: lean_ci
         run: |
           set -euo pipefail
@@ -26,7 +26,15 @@ jobs:
           set -euo pipefail
           lake update
           lake exe cache get
-          lake env lean bayes_adaptive_kernel_v1.lean | tee BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt
+          lake env lean -o BayesAdaptiveKernelV1.olean bayes_adaptive_kernel_v1.lean | tee BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt
+      - name: Bundled leanchecker independent replay
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          LEAN_PATH="$(lake env which lean)"
+          LEANCHECKER="$(dirname "$LEAN_PATH")/leanchecker"
+          test -x "$LEANCHECKER"
+          "$LEANCHECKER" BayesAdaptiveKernelV1.olean | tee BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt
       - name: Verify no placeholders or custom axioms
         working-directory: lean_ci
         run: |
@@ -42,19 +50,22 @@ jobs:
             "Run: ${GITHUB_RUN_ID}" \
             "Commit: ${GITHUB_SHA}" \
             'Lean: 4.32.1' \
-            'mathlib: v4.32.1' \
+            'mathlib: v4.32.1 / 520045ab14e26149ee970e2e617ca04b09bde5d6' \
+            'Certification: Lean elaboration/kernel check + bundled leanchecker replay.' \
             'Targets: BA-1 through BA-9 finite-alphabet structural closure.' \
             'Includes normalized positive-evidence Bayes update, posterior-model martingale with zero-evidence handling, robust predecessor monotonicity, finite-horizon recursion, Bellman contraction, Banach unique fixed point, dual-effect witness and capability/model-forgetting witness.' \
             'No claim of novelty for classical Bayesian filtering, dual control, Bellman contraction or Banach fixed point.' \
             > BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt
-          sha256sum bayes_adaptive_kernel_v1.lean BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt > BAYES_ADAPTIVE_KERNEL_V1_SHA256SUMS.txt
+          sha256sum bayes_adaptive_kernel_v1.lean BayesAdaptiveKernelV1.olean BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt > BAYES_ADAPTIVE_KERNEL_V1_SHA256SUMS.txt
       - name: Upload evidence
         uses: actions/upload-artifact@v4
         with:
-          name: INSACERMO_BAYES_ADAPTIVE_KERNEL_V1
+          name: INSACERMO_BAYES_ADAPTIVE_KERNEL_V1_MAX
           path: |
             lean_ci/bayes_adaptive_kernel_v1.lean
+            lean_ci/BayesAdaptiveKernelV1.olean
             lean_ci/BAYES_ADAPTIVE_KERNEL_V1_OUTPUT.txt
+            lean_ci/BAYES_ADAPTIVE_KERNEL_V1_LEANCHECKER.txt
             lean_ci/BAYES_ADAPTIVE_KERNEL_V1_CERTIFICATE.txt
             lean_ci/BAYES_ADAPTIVE_KERNEL_V1_SHA256SUMS.txt
           if-no-files-found: error
