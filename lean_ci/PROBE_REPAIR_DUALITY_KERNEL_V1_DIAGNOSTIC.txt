@@ -1,68 +1,19 @@
-ProbeRepairDualityKernelV1.lean:125:15: error(lean.unknownIdentifier): Unknown identifier `mul_sum`
-ProbeRepairDualityKernelV1.lean:125:15: error: `simp` made no progress
-ProbeRepairDualityKernelV1.lean:190:2: error: failed to synthesize
-  Decidable
-    (MinimalOldObstructionFS pair12 ∧
-      MinimalOldObstructionFS pair13 ∧
-        MinimalOldObstructionFS pair23 ∧
-          CommonFS repairs3 pair12 ∧
-            CommonFS repairs3 pair13 ∧ CommonFS repairs3 pair23 ∧ ¬CommonFS (old3 ∪ repairs3) triple3)
-
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
-ProbeRepairDualityKernelV1.lean:237:5: error: unexpected token 'in'; expected ','
-ProbeRepairDualityKernelV1.lean:247:59: error: unsolved goals
+ProbeRepairDualityKernelV1.lean:118:31: error: `simp` made no progress
+ProbeRepairDualityKernelV1.lean:167:7: error(lean.invalidField): Invalid field `any`: The environment does not contain `Finset.any`, so it is not possible to project the field `any` from an expression
+  Caps
+of type `Finset A6`
+ProbeRepairDualityKernelV1.lean:171:6: error(lean.invalidField): Invalid field `isEmpty`: The environment does not contain `Finset.isEmpty`, so it is not possible to project the field `isEmpty` from an expression
+  O
+of type `Finset W3`
+ProbeRepairDualityKernelV1.lean:173:38: error(lean.invalidField): Invalid field `all`: The environment does not contain `Finset.all`, so it is not possible to project the field `all` from an expression
+  Finset.univ.powerset
+of type `Finset (Finset W3)`
+ProbeRepairDualityKernelV1.lean:186:2: error: Tactic `native_decide` failed: Could not evaluate decidable instance. Error: cannot evaluate code because 'InsacermoProbeRepair.minimalOldObstructionFSB' uses 'sorry' and/or contains errors
+ProbeRepairDualityKernelV1.lean:243:59: error: unsolved goals
 M : ℝ
-⊢ sorry M {probeX, repairY} = 2
-ProbeRepairDualityKernelV1.lean:248:8: warning: declaration uses `sorry`
-ProbeRepairDualityKernelV1.lean:248:29: warning: This simp argument is unused:
-  interventionCost
-
-Hint: Omit it from the simp argument list.
-  simp [planCost, mixedPlan,̵ ̵i̵n̵t̵e̵r̵v̵e̵n̵t̵i̵o̵n̵C̵o̵s̵t̵]
-
-Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-Try this:
-  [apply] ring_nf
-  
-  The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
-    
-  Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-ProbeRepairDualityKernelV1.lean:294:28: error: unsolved goals
-M : ℝ
-S : Finset Intervention
-hp : ProbeOnly S
-hc : CoversAll S
-⊢ sorry M {probeX, probeY} = 1 + M
-ProbeRepairDualityKernelV1.lean:296:8: warning: declaration uses `sorry`
-ProbeRepairDualityKernelV1.lean:296:18: warning: This simp argument is unused:
-  interventionCost
-
-Hint: Omit it from the simp argument list.
-  simp [planCost,̵ ̵i̵n̵t̵e̵r̵v̵e̵n̵t̵i̵o̵n̵C̵o̵s̵t̵]
-
-Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-Try this:
-  [apply] ring_nf
-  
-  The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
-    
-  Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-ProbeRepairDualityKernelV1.lean:301:28: error: unsolved goals
-M : ℝ
-S : Finset Intervention
-hr : RepairOnly S
-hc : CoversAll S
-⊢ sorry M {repairX, repairY} = 1 + M
-ProbeRepairDualityKernelV1.lean:303:8: warning: declaration uses `sorry`
-ProbeRepairDualityKernelV1.lean:303:18: warning: This simp argument is unused:
-  interventionCost
-
-Hint: Omit it from the simp argument list.
-  simp [planCost,̵ ̵i̵n̵t̵e̵r̵v̵e̵n̵t̵i̵o̵n̵C̵o̵s̵t̵]
-
-Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-ProbeRepairDualityKernelV1.lean:317:4: error: not a positivity goal
-ProbeRepairDualityKernelV1.lean:322:2: error: unsolved goals
+⊢ 1 + 1 = 2
+ProbeRepairDualityKernelV1.lean:300:2: error: No goals to be solved
+ProbeRepairDualityKernelV1.lean:318:2: error: unsolved goals
 case refine_4
 K : ℕ
 ⊢ ↑K * 2 < 2 * ↑K + 1 + 1
