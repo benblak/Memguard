@@ -14,6 +14,8 @@ repls = [
      '  rw [pi_norm_le_iff_of_nonempty]\n  intro b'),
     ('rw [expectedContinuation, expectedContinuation, Finset.sum_sub_distrib]',
      'rw [expectedContinuation, expectedContinuation, ← Finset.sum_sub_distrib]'),
+    ('          abs_sum_le_sum_abs _',
+     '          Finset.abs_sum_le_sum_abs _ _'),
 ]
 for old, new in repls:
     if old not in s:
