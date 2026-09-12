@@ -1,25 +1,35 @@
-InteractionDepthBridgeV1.lean:53:67: error: unexpected token '+'; expected term
-InteractionDepthBridgeV1.lean:101:10: error: omega could not prove the goal:
-a possible counterexample may satisfy the constraints
-  e ≥ 1
-  d ≥ 0
-  c ≥ 0
-  c - d ≥ 1
-where
- c := ↑ys.length
- d := ↑(roleChanges (b :: ys))
- e := ↑(b :: ys).length
-InteractionDepthBridgeV1.lean:100:39: warning: This simp argument is unused:
-  hi
+InteractionDepthBridgeV1.lean:53:78: warning: This simp argument is unused:
+  roleChanges
 
 Hint: Omit it from the simp argument list.
-  simp [interactionDepth, hab,̵ ̵h̵i̵]
+  simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self,̵ ̵r̵o̵l̵e̵C̵h̵a̵n̵g̵e̵s̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-InteractionDepthBridgeV1.lean:108:19: error: unexpected token '+'; expected term
-InteractionDepthBridgeV1.lean:120:6: error: Type mismatch
-  ih
-has type
-  Alternating (canonical k)
-but is expected to have type
-  Alternating (repair :: canonical k)
+InteractionDepthBridgeV1.lean:55:78: warning: This simp argument is unused:
+  roleChanges
+
+Hint: Omit it from the simp argument list.
+  simp [interactionDepth, switchesFrom, jump, switchesFrom_cons_self,̵ ̵r̵o̵l̵e̵C̵h̵a̵n̵g̵e̵s̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+InteractionDepthBridgeV1.lean:73:2: error: Invalid alternative name `cons₂`: Expected `cons_cons`
+InteractionDepthBridgeV1.lean:69:2: error: Alternative `cons_cons` has not been provided
+InteractionDepthBridgeV1.lean:84:2: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  f ≥ 0
+  e ≥ 0
+  e - f ≥ 1
+  d ≥ 0
+  c ≥ 0
+  c - d ≥ 0
+  b ≥ 0
+  a ≥ 0
+  a - b ≥ 0
+where
+ a := ↑(switchesFrom probe xs)
+ b := ↑(switchesFrom probe ys)
+ c := ↑(switchesFrom repair xs)
+ d := ↑(switchesFrom repair ys)
+ e := ↑((switchesFrom probe ys).min (switchesFrom repair ys))
+ f := ↑((switchesFrom probe xs).min (switchesFrom repair xs))
+InteractionDepthBridgeV1.lean:114:6: error: No goals to be solved
