@@ -1,0 +1,24 @@
+ProbeRepairAlternationKernelV1.lean:76:14: error: unsolved goals
+case succ
+k : ℕ
+ih : run (initial k) (canonical k) = some goal
+⊢ run { remaining := k, informed := false } (canonical k) = some { remaining := 0, informed := false }
+ProbeRepairAlternationKernelV1.lean:77:43: warning: This simp argument is unused:
+  ih
+
+Hint: Omit it from the simp argument list.
+  simp [canonical, run, initial, step, i̵h̵,̵ ̵goal]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+ProbeRepairAlternationKernelV1.lean:124:15: error: unsolved goals
+case succ.succ
+k : ℕ
+ih : Alternating (canonical (k + 1))
+⊢ Alternating (repair :: canonical k)
+ProbeRepairAlternationKernelV1.lean:125:40: warning: This simp argument is unused:
+  ih
+
+Hint: Omit it from the simp argument list.
+  simp [canonical, Alternating,̵ ̵i̵h̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
