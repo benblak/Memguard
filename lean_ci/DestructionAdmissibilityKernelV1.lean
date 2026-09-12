@@ -178,7 +178,12 @@ theorem fiberSafe_iff_no_obstructive_realized_fiber
     (h : World → Obs) :
     FiberSafe Good B C h ↔
       ∀ y, (Fiber B h y).Nonempty → ¬ Obstructive Good C (Fiber B h y) := by
-  rfl
+  constructor
+  · intro hsafe y hy hobs
+    exact hobs (hsafe y hy)
+  · intro hno y hy
+    by_contra hca
+    exact hno y hy hca
 
 /-- `fine` refines `coarse` when equality under the fine observation implies equality under the
 coarse observation. -/
@@ -233,9 +238,9 @@ claiming that the interventions are otherwise identical. -/
 theorem probe_or_repair_restore_same_safety_predicate
     (Good : World → Act → Prop) (B : Set World)
     {C C' : Set Act} {fine coarse : World → Obs}
-    (hProbe : Refines fine coarse)
+    (_hProbe : Refines fine coarse)
     (hFineSafe : FiberSafe Good B C fine)
-    (hRepair : C ⊆ C')
+    (_hRepair : C ⊆ C')
     (hCoarseRepairedSafe : FiberSafe Good B C' coarse) :
     FiberSafe Good B C fine ∧ FiberSafe Good B C' coarse := by
   exact ⟨hFineSafe, hCoarseRepairedSafe⟩
