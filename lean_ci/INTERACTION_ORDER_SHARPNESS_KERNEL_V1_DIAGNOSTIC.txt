@@ -1,41 +1,5 @@
-InteractionOrderSharpnessKernelV1.lean:83:4: error: Tactic `assumption` failed
-
-r M : ℕ
-S : Finset (Fin (r + 1))
-hproper : S ≠ univ
-hss : S ⊂ univ
-hlt : #S < #univ
-⊢ #S ≤ r
-InteractionOrderSharpnessKernelV1.lean:77:47: error: unsolved goals
-r M : ℕ
-S : Finset (Fin (r + 1))
-hproper : S ≠ univ
-hss : S ⊂ univ
-hlt : #S < #univ
-hS : #S ≤ r
-⊢ InteractionPrice ZeroCoeff S = InteractionPrice (PureTopCoeff r M) S
-InteractionOrderSharpnessKernelV1.lean:83:52: error: unexpected token 'at'; expected command
-InteractionOrderSharpnessKernelV1.lean:106:6: error: Tactic `assumption` failed
-
-r M : ℕ
-hhead : PureTopCoeff r M univ = M
-T : Finset (Fin (r + 1))
-hT : T ∈ univ.ssubsets
-hsub : T ⊂ univ
-hlt : #T < #univ
-⊢ #T ≤ r
-InteractionOrderSharpnessKernelV1.lean:98:34: error: unsolved goals
-r M : ℕ
-hhead : PureTopCoeff r M univ = M
-T : Finset (Fin (r + 1))
-hT : T ∈ univ.ssubsets
-hsub : T ⊂ univ
-hlt : #T < #univ
-hTle : #T ≤ r
-⊢ PureTopCoeff r M T = 0
-InteractionOrderSharpnessKernelV1.lean:90:50: error: unsolved goals
+InteractionOrderSharpnessKernelV1.lean:91:50: error: unsolved goals
 r M : ℕ
 hhead : PureTopCoeff r M univ = M
 hsum : univ.ssubsets.sum (PureTopCoeff r M) = 0
-⊢ M + univ.ssubsets.sum (PureTopCoeff r M) = M
-InteractionOrderSharpnessKernelV1.lean:106:54: error: unexpected token 'at'; expected command
+⊢ M + 0 = M
