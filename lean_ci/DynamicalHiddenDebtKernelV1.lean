@@ -26,7 +26,8 @@ theorem reserveAt_eq_sub (H t : Nat) :
   induction t with
   | zero => simp [reserveAt, trajectory]
   | succ t ih =>
-      simp [reserveAt, trajectory, reserveStep, ih]
+      change reserveAt H t - 1 = H - (t + 1)
+      rw [ih]
       omega
 
 /-- Strictly before H, latent reserve is still positive. -/
@@ -153,17 +154,26 @@ theorem dynamical_hidden_debt_impossibility_v1
       (∀ t, H ≤ t →
         DynamicalDebtPrice H n M t Finset.univ = M ∧
         ¬ GloballySafe (DynamicalDebtPrice H n M) t) := by
-  refine ⟨k + 1, max (N + 1) 2, by omega, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨k + 1, max (N + 1) 2, ?_⟩
+  constructor
   · omega
+  constructor
   · omega
+  constructor
+  · omega
+  constructor
   · intro t
     exact reserveAt_eq_sub H t
+  constructor
   · intro t ht S
     exact full_profile_silent_before_exhaustion H (k + 1) (max (N + 1) 2) t ht S
+  constructor
   · exact infinite_local_trace_indistinguishable
       H (k + 1) (max (N + 1) 2) k (by omega) (by omega)
+  constructor
   · intro t
     exact safe_world_safe_forever (k + 1) t
+  constructor
   · intro t ht
     exact debt_world_safe_before_exhaustion H (k + 1) (max (N + 1) 2) t ht
   · intro t ht
