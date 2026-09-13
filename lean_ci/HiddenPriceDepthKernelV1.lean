@@ -192,10 +192,9 @@ theorem all_smaller_coalitions_are_cheaper
 theorem exists_hiddenDepth_coalition_at_full_price
     (cost : A → Nat) (Sat : A → Req → Prop)
     (Q : Finset Req) (hevQ : SetFeasible cost Sat Q) :
-    ∃ S : Finset Req,
-      S ⊆ Q ∧
+    ∃ S : Finset Req, ∃ hSQ : S ⊆ Q,
       S.card = HiddenPriceDepth cost Sat Q hevQ ∧
-      SetPrice cost Sat S (subset_feasible_of_full cost Sat ‹S ⊆ Q› hevQ) =
+      SetPrice cost Sat S (subset_feasible_of_full cost Sat hSQ hevQ) =
         SetPrice cost Sat Q hevQ := by
   classical
   rcases hiddenPriceDepth_spec cost Sat Q hevQ with ⟨S, hSQ, hcard, hnf⟩
@@ -236,9 +235,9 @@ theorem hiddenPriceDepth_le_card
     (Q : Finset Req) (hevQ : SetFeasible cost Sat Q) :
     HiddenPriceDepth cost Sat Q hevQ ≤ Q.card := by
   classical
-  apply Nat.find_min'
-  exact exists_subcritical_obstruction cost Sat Q hevQ
-  exact ⟨Q, Finset.Subset.rfl, rfl, full_not_subcriticalFace cost Sat Q hevQ⟩
+  exact Nat.find_min'
+    (exists_subcritical_obstruction cost Sat Q hevQ)
+    ⟨Q, Finset.Subset.rfl, rfl, full_not_subcriticalFace cost Sat Q hevQ⟩
 
 /-- Consolidated exact characterization: hidden price depth is the first interaction order
 at which subcritical local coverage fails, equivalently the minimum non-face cardinality
@@ -250,10 +249,9 @@ theorem hidden_price_depth_characterization_v1
       CoveredThrough cost Sat Q (SetPrice cost Sat Q hevQ) k) ∧
     (¬ CoveredThrough cost Sat Q (SetPrice cost Sat Q hevQ)
       (HiddenPriceDepth cost Sat Q hevQ)) ∧
-    (∃ S : Finset Req,
-      S ⊆ Q ∧
+    (∃ S : Finset Req, ∃ hSQ : S ⊆ Q,
       S.card = HiddenPriceDepth cost Sat Q hevQ ∧
-      SetPrice cost Sat S (subset_feasible_of_full cost Sat ‹S ⊆ Q› hevQ) =
+      SetPrice cost Sat S (subset_feasible_of_full cost Sat hSQ hevQ) =
         SetPrice cost Sat Q hevQ) ∧
     (∀ S : Finset Req, ∀ hSQ : S ⊆ Q,
       S.card < HiddenPriceDepth cost Sat Q hevQ →
