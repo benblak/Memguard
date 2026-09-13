@@ -1,0 +1,21 @@
+CriticalHorizonKernelV1.lean:83:2: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RevokedAt Win Γ cap d x)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+CriticalHorizonKernelV1.lean:92:8: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RevokedAt Win Γ cap d x)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+CriticalHorizonKernelV1.lean:104:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RevokedAt Win Γ cap d x)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+CriticalHorizonKernelV1.lean:178:17: warning: Variable name `hsrc` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+CriticalHorizonKernelV1.lean:318:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RevokedAt WinJoint JointContract JointCap forgetNow MemoryState.rich)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
