@@ -132,6 +132,7 @@ theorem noDebt_before_destructionCritical
     (hev : EverDestructionDebt Win Γ C d x)
     {h : Nat} (hlt : h < DestructionCriticalHorizon Win Γ C d x hev) :
     ¬ RobustDestructionDebtAt Win Γ C d x h := by
+  classical
   intro hdebt
   have hmin : DestructionCriticalHorizon Win Γ C d x hev ≤ h := by
     exact Nat.find_min' hev hdebt
@@ -259,14 +260,14 @@ theorem robustSafe_iff_before_twoClockBoundary
   let τV := ViabilityCriticalHorizon Win Γ C x hevV
   change (h < τV ∧ h < τD) ↔ h < Nat.min τD τV
   by_cases hDV : τD ≤ τV
-  · rw [min_eq_left hDV]
+  · rw [Nat.min_eq_left hDV]
     constructor
     · rintro ⟨hv, hd⟩
       exact hd
     · intro hd
       exact ⟨lt_of_lt_of_le hd hDV, hd⟩
   · have hVD : τV ≤ τD := by omega
-    rw [min_eq_right hVD]
+    rw [Nat.min_eq_right hVD]
     constructor
     · rintro ⟨hv, hd⟩
       exact hv
@@ -297,6 +298,7 @@ theorem robustCriticalHorizon_eq_twoClockBoundary
     (hevR : EverRobustRevoked Win Γ C d x) :
     RobustCriticalHorizon Win Γ C d x hevR =
       TwoClockBoundary Win Γ C d x hevD hevV := by
+  classical
   let B := TwoClockBoundary Win Γ C d x hevD hevV
   let R := RobustCriticalHorizon Win Γ C d x hevR
   have hnotB : ¬ RobustSafeAt Win Γ C d x B := by
@@ -558,6 +560,7 @@ theorem df_ever_source_failure : EverSourceFailure ClockWin DFContract DFEnvelop
 theorem df_destructionCritical_eq_one :
     DestructionCriticalHorizon ClockWin DFContract DFEnvelope clockDestroy intact
       df_ever_debt = 1 := by
+  classical
   have hle :
       DestructionCriticalHorizon ClockWin DFContract DFEnvelope clockDestroy intact
         df_ever_debt ≤ 1 := by
@@ -578,6 +581,7 @@ theorem df_destructionCritical_eq_one :
 theorem df_viabilityCritical_eq_two :
     ViabilityCriticalHorizon ClockWin DFContract DFEnvelope intact
       df_ever_source_failure = 2 := by
+  classical
   have hle :
       ViabilityCriticalHorizon ClockWin DFContract DFEnvelope intact
         df_ever_source_failure ≤ 2 := by
@@ -609,6 +613,7 @@ theorem df_destruction_really_first :
       DestructionCriticalHorizon ClockWin DFContract DFEnvelope clockDestroy intact df_ever_debt <
       ViabilityCriticalHorizon ClockWin DFContract DFEnvelope intact df_ever_source_failure := by
     rw [df_destructionCritical_eq_one, df_viabilityCritical_eq_two]
+    omega
   simpa [df_destructionCritical_eq_one] using
     (destruction_first_boundary_cause ClockWin DFContract DFEnvelope
       df_contract_monotone df_envelope_monotone clockDestroy intact
@@ -630,6 +635,7 @@ theorem vf_ever_source_failure : EverSourceFailure ClockWin VFContract VFEnvelop
 theorem vf_destructionCritical_eq_two :
     DestructionCriticalHorizon ClockWin VFContract VFEnvelope clockDestroy intact
       vf_ever_debt = 2 := by
+  classical
   have hle :
       DestructionCriticalHorizon ClockWin VFContract VFEnvelope clockDestroy intact
         vf_ever_debt ≤ 2 := by
@@ -650,6 +656,7 @@ theorem vf_destructionCritical_eq_two :
 theorem vf_viabilityCritical_eq_one :
     ViabilityCriticalHorizon ClockWin VFContract VFEnvelope intact
       vf_ever_source_failure = 1 := by
+  classical
   have hle :
       ViabilityCriticalHorizon ClockWin VFContract VFEnvelope intact
         vf_ever_source_failure ≤ 1 := by
@@ -682,6 +689,7 @@ theorem vf_viability_really_first :
       ViabilityCriticalHorizon ClockWin VFContract VFEnvelope intact vf_ever_source_failure <
       DestructionCriticalHorizon ClockWin VFContract VFEnvelope clockDestroy intact vf_ever_debt := by
     rw [vf_viabilityCritical_eq_one, vf_destructionCritical_eq_two]
+    omega
   simpa [vf_viabilityCritical_eq_one] using
     (viability_first_boundary_cause ClockWin VFContract VFEnvelope
       vf_contract_monotone vf_envelope_monotone clockDestroy intact
