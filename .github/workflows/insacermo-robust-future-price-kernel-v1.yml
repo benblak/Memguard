@@ -1,0 +1,141 @@
+name: INSACERMO Robust Future Price Kernel V1
+
+on:
+  push:
+    branches:
+      - insacermo-robust-future-price-kernel-v1
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare mathlib
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+
+      - name: Build destruction admissibility dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/DestructionAdmissibilityKernelV1.olean DestructionAdmissibilityKernelV1.lean
+
+      - name: Build temporal destruction dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/TemporalDestructionKernelV1.olean TemporalDestructionKernelV1.lean
+
+      - name: Build temporal contract extension dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/TemporalContractExtensionV1.olean TemporalContractExtensionV1.lean
+
+      - name: Build temporal horizon dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/TemporalHorizonKernelV1.olean TemporalHorizonKernelV1.lean
+
+      - name: Build capability debt dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/CapabilityDebtKernelV1.olean CapabilityDebtKernelV1.lean
+
+      - name: Build joint horizon-capability dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/JointHorizonCapabilityKernelV1.olean JointHorizonCapabilityKernelV1.lean
+
+      - name: Build critical horizon dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/CriticalHorizonKernelV1.olean CriticalHorizonKernelV1.lean
+
+      - name: Build robust right-to-forget dependency
+        working-directory: lean_ci
+        run: lake env lean -o .lake/build/lib/lean/RobustRightToForgetKernelV1.olean RobustRightToForgetKernelV1.lean
+
+      - name: Kernel-check robust future price kernel
+        id: kernel
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/RobustFuturePriceKernelV1.olean RobustFuturePriceKernelV1.lean 2>&1 | tee ROBUST_FUTURE_PRICE_KERNEL_V1_OUTPUT.txt
+
+      - name: Persist diagnostics if Lean fails
+        if: steps.kernel.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_OUTPUT.txt lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture robust future price diagnostics [skip ci]' || true
+          git push
+          exit 1
+
+      - name: Bundled leanchecker independent replay
+        if: steps.kernel.outcome == 'success'
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker RobustFuturePriceKernelV1.lean
+
+      - name: Verify no placeholders or custom axioms
+        if: steps.kernel.outcome == 'success'
+        working-directory: lean_ci
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          p = Path('RobustFuturePriceKernelV1.lean')
+          s = p.read_text()
+          out=[]; i=0; depth=0
+          while i < len(s):
+              if s.startswith('/-', i): depth += 1; i += 2; continue
+              if depth and s.startswith('-/', i): depth -= 1; i += 2; continue
+              if depth:
+                  out.append('\n' if s[i]=='\n' else ' '); i += 1; continue
+              if s.startswith('--', i):
+                  j=s.find('\n', i)
+                  if j<0: break
+                  out.append('\n'); i=j+1; continue
+              out.append(s[i]); i += 1
+          code=''.join(out)
+          bad=[]
+          for n,line in enumerate(code.splitlines(),1):
+              if re.search(r'\b(?:sorry|admit)\b', line): bad.append((n,line))
+              if re.search(r'^\s*axiom\b', line): bad.append((n,line))
+          if bad:
+              for n,line in bad: print(f'{n}:{line}')
+              raise SystemExit(1)
+          print('No sorry/admit/custom axiom placeholders found in executable Lean code.')
+          PY
+
+      - name: Build certification receipt
+        if: steps.kernel.outcome == 'success'
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          cp lean_ci/RobustFuturePriceKernelV1.lean evidence/
+          cp lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_OUTPUT.txt evidence/
+          cat > evidence/CERTIFICATE.txt <<EOF
+          INSACERMO ROBUST FUTURE PRICE KERNEL V1
+          commit=${GITHUB_SHA}
+          lean=4.32.1
+          kernel_check=success
+          leanchecker_replay=success
+          placeholders=none
+          custom_axioms=none
+          EOF
+
+      - name: Upload evidence
+        if: steps.kernel.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_ROBUST_FUTURE_PRICE_KERNEL_V1
+          path: evidence/
