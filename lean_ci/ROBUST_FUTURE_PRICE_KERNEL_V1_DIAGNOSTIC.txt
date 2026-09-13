@@ -1,0 +1,19 @@
+RobustFuturePriceKernelV1.lean:256:2: error: Type mismatch: After simplification, term
+  uncertain_forget_safe_zero
+ has type
+  RobustSafeAt WinU UContract UEnvelope forgetU UState.rich 0
+but is expected to have type
+  ViableAt WinU UContract UEnvelope UState.rich 0 ∧ ViableAt WinU UContract UEnvelope (forgetU UState.rich) 0
+RobustFuturePriceKernelV1.lean:269:57: warning: This simp argument is unused:
+  forgetU
+
+Hint: Omit it from the simp argument list.
+  simp [repairApply, f̵o̵r̵g̵e̵t̵U̵,̵ ̵WinU]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RobustFuturePriceKernelV1.lean:293:4: error: Type mismatch: After simplification, term
+  h1
+ has type
+  ViableAt WinU UContract UEnvelope UState.rich 1 ∧ ViableAt WinU UContract UEnvelope (forgetU UState.rich) 1
+but is expected to have type
+  RobustSafeAt WinU UContract UEnvelope forgetU UState.rich 1
