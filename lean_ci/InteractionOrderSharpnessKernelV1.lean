@@ -108,7 +108,7 @@ theorem pureTop_full_price (r M : Nat) :
     have hTle : T.card ≤ r := by
       omega
     exact pureTopCoeff_zero_through_r r M T hTle
-  rw [hsum]
+  simp [hsum]
 
 /-- SHARPNESS V1.
 
