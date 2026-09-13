@@ -21,25 +21,15 @@ theorem full_price_eq_price_add_omitted
     SignedInteractionPrice c (Finset.univ : Finset Req) =
       SignedInteractionPrice c S + OmittedMass c S := by
   unfold SignedInteractionPrice OmittedMass
-  let U : Finset (Finset Req) := (Finset.univ : Finset Req).powerset
-  let A : Finset (Finset Req) := U.filter (fun T => T ⊆ S)
-  let B : Finset (Finset Req) := U.filter (fun T => ¬ T ⊆ S)
-  have hU : U = A ∪ B := by
+  have hsplit := Finset.sum_filter_add_sum_filter_not
+    ((Finset.univ : Finset Req).powerset) (fun T => T ⊆ S) c
+  have hfilter :
+      ((Finset.univ : Finset Req).powerset.filter (fun T => T ⊆ S)) =
+        S.powerset := by
     ext T
-    simp [U, A, B]
-  have hdis : Disjoint A B := by
-    refine Finset.disjoint_left.mpr ?_
-    intro T hTA hTB
-    simp [A] at hTA
-    simp [B] at hTB
-    exact hTB hTA.2
-  rw [hU, Finset.sum_union hdis]
-  have hA : A = S.powerset := by
-    ext T
-    simp [A, U]
-  have hB : B = (Finset.univ : Finset Req).powerset.filter (fun T => ¬ T ⊆ S) := by
-    rfl
-  simp [hA, hB]
+    simp
+  rw [hfilter] at hsplit
+  exact hsplit.symm
 
 /-- Exact zero-cut criterion: S has full global signed price iff all omitted
 interaction mass cancels to zero. -/
