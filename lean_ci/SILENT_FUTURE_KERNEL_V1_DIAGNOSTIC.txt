@@ -1,0 +1,8 @@
+SilentFutureKernelV1.lean:16:4: error(lean.dependsOnNoncomputable): failed to compile definition, consider marking it as 'noncomputable' because it depends on 'SetPrice', which is 'noncomputable'
+SilentFutureKernelV1.lean:24:4: error(lean.dependsOnNoncomputable): failed to compile definition, consider marking it as 'noncomputable' because it depends on 'SetPrice', which is 'noncomputable'
+SilentFutureKernelV1.lean:45:2: error: Type mismatch
+  Eq.symm ((bounded_order_audits_can_miss_global n k M hkn hM).left S hcard)
+has type
+  1 = SetPrice (hoCost n M) (hoSat n) S ⋯
+but is expected to have type
+  SetPrice (hoCost n M) (hoSat n) S ⋯ = 1
