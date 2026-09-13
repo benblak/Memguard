@@ -79,8 +79,9 @@ theorem pureTop_equal_on_every_proper_coalition
     Finset.ssubset_iff_subset_ne.mpr ⟨Finset.subset_univ S, hproper⟩
   have hlt : S.card < (Finset.univ : Finset (Fin (r + 1))).card :=
     Finset.card_lt_card hss
+  have huniv : (Finset.univ : Finset (Fin (r + 1))).card = r + 1 := by
+    simp
   have hS : S.card ≤ r := by
-    simpa only [Finset.card_univ, Fintype.card_fin] at hlt
     omega
   rw [zeroPrice S, pureTopPrice_zero_through_r r M S hS]
 
@@ -102,11 +103,12 @@ theorem pureTop_full_price (r M : Nat) :
       Finset.mem_ssubsets.mp hT
     have hlt : T.card < (Finset.univ : Finset (Fin (r + 1))).card :=
       Finset.card_lt_card hsub
+    have huniv : (Finset.univ : Finset (Fin (r + 1))).card = r + 1 := by
+      simp
     have hTle : T.card ≤ r := by
-      simpa only [Finset.card_univ, Fintype.card_fin] at hlt
       omega
     exact pureTopCoeff_zero_through_r r M T hTle
-  rw [hsum, add_zero]
+  rw [hsum]
 
 /-- SHARPNESS V1.
 
