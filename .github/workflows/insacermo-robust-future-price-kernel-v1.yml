@@ -20,6 +20,7 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Prepare mathlib
+        working-directory: lean_ci
         run: |
           set -euo pipefail
           lake update
