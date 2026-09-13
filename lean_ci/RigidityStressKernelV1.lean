@@ -3,13 +3,12 @@ import Mathlib
 namespace InsacermoRigidityStress
 
 open Finset
-open scoped BigOperators
 
 /-- A maximally rigid price law: every coalition price is exactly the sum of
 its singleton weights. There are no higher-order interaction terms. -/
 def ModularPrice {Req : Type*} [DecidableEq Req]
     (w : Req → Nat) (S : Finset Req) : Nat :=
-  ∑ q in S, w q
+  S.sum w
 
 /-- A time-indexed modular process. The weights may evolve with time, but the
 price law remains modular at every time. -/
@@ -34,7 +33,10 @@ theorem all_coalitions_equal_of_singletons_equal
     intro q
     simpa [ModularPrice] using h₁ q
   intro S
-  simp [ModularPrice, hw]
+  unfold ModularPrice
+  apply Finset.sum_congr rfl
+  intro q hq
+  exact hw q
 
 /-- Contrapositive form: a global modular discrepancy must already be visible
 on at least one singleton. -/
@@ -44,9 +46,11 @@ theorem global_divergence_has_singleton_witness
     (hfull : ModularPrice wA Finset.univ ≠ ModularPrice wB Finset.univ) :
     ∃ q : Req, ModularPrice wA {q} ≠ ModularPrice wB {q} := by
   by_contra h
-  push_neg at h
   apply hfull
-  exact all_coalitions_equal_of_singletons_equal wA wB h Finset.univ
+  apply all_coalitions_equal_of_singletons_equal wA wB
+  intro q
+  by_contra hq
+  exact h ⟨q, hq⟩
 
 /-- Equality of the complete singleton trace over time forces equality of the
 complete coalition-price trace over time, even though the weights themselves
@@ -61,7 +65,8 @@ theorem infinite_full_trace_equal_of_singleton_trace_equal
   intro t S
   unfold ModularProcess
   exact all_coalitions_equal_of_singletons_equal
-    (wA t) (wB t) (fun q => htrace t q) S
+    (wA t) (wB t)
+    (fun q => by simpa [ModularProcess] using htrace t q) S
 
 /-- Budget safety on the full contract. -/
 def GloballyBudgetSafe
@@ -109,8 +114,8 @@ theorem rigidity_stress_modular_boundary_v1
   constructor
   · intro t
     exact hall t Finset.univ
-  · push_neg
-    intro t
-    exact hall t Finset.univ
+  · intro hex
+    rcases hex with ⟨t, ht⟩
+    exact ht (hall t Finset.univ)
 
 end InsacermoRigidityStress
