@@ -128,14 +128,20 @@ theorem not_robustSafe_has_witness
     (
       ∃ c q, c ∈ C h ∧ q ∈ Γ h ∧ ¬ Win (d x) c q
     ) := by
-  unfold RobustSafeAt ViableAt at hnot
-  push_neg at hnot
-  rcases hnot with hsrc | htgt
-  · left
-    rcases hsrc with ⟨c, hc, q, hq, hfail⟩
-    exact ⟨c, q, hc, hq, hfail⟩
+  classical
+  by_cases hsrc : ViableAt Win Γ C x h
   · right
+    have htgt : ¬ ViableAt Win Γ C (d x) h := by
+      intro htv
+      exact hnot ⟨hsrc, htv⟩
+    unfold ViableAt at htgt
+    push Not at htgt
     rcases htgt with ⟨c, hc, q, hq, hfail⟩
+    exact ⟨c, q, hc, hq, hfail⟩
+  · left
+    unfold ViableAt at hsrc
+    push Not at hsrc
+    rcases hsrc with ⟨c, hc, q, hq, hfail⟩
     exact ⟨c, q, hc, hq, hfail⟩
 
 /-- If the source is robustly viable but strong safety fails, failure is necessarily destruction-side. -/
@@ -147,11 +153,12 @@ theorem sourceViable_not_robustSafe_has_destruction_witness
     (hnot : ¬ RobustSafeAt Win Γ C d x h) :
     ∃ c q,
       c ∈ C h ∧ q ∈ Γ h ∧ Win x c q ∧ ¬ Win (d x) c q := by
+  classical
   have htgt : ¬ ViableAt Win Γ C (d x) h := by
     intro htv
     exact hnot ⟨hsrc, htv⟩
   unfold ViableAt at htgt
-  push_neg at htgt
+  push Not at htgt
   rcases htgt with ⟨c, hc, q, hq, hfail⟩
   exact ⟨c, q, hc, hq, hsrc c hc q hq, hfail⟩
 
