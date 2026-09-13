@@ -13,7 +13,7 @@ universe u
 
 /-- Temporal price profile: before the reveal horizon H, use a flat world;
 from H onward, switch permanently to the higher-order hard world. -/
-def TemporalPrice
+noncomputable def TemporalPrice
     (H n M : Nat) (h : Nat) (S : Finset (Fin n)) : Nat :=
   if h < H then
     SetPrice flatCost (flatSat (Req := Fin n)) S (flat_set_feasible S)
@@ -21,7 +21,7 @@ def TemporalPrice
     SetPrice (hoCost n M) (hoSat n) S (ho_set_feasible n M S)
 
 /-- A permanently flat comparison world. -/
-def FlatTemporalPrice
+noncomputable def FlatTemporalPrice
     (n : Nat) (_h : Nat) (S : Finset (Fin n)) : Nat :=
   SetPrice flatCost (flatSat (Req := Fin n)) S (flat_set_feasible S)
 
@@ -42,7 +42,7 @@ theorem post_reveal_local_profile_still_flat
   intro S hcard
   simp [TemporalPrice, FlatTemporalPrice, Nat.not_lt.mpr hh]
   rw [flat_price_eq_one S]
-  exact (bounded_order_audits_can_miss_global n k M hkn hM).1 S hcard |>.symm
+  exact (bounded_order_audits_can_miss_global n k M hkn hM).1 S hcard
 
 /-- Before reveal, both worlds have full-contract price one. -/
 theorem pre_reveal_full_price_one
