@@ -1,0 +1,115 @@
+name: INSACERMO Dynamical Hidden Debt Kernel V1
+
+on:
+  push:
+    branches:
+      - insacermo-dynamical-hidden-debt-kernel-v1
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare mathlib
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+
+      - name: Build dependencies
+        run: |
+          set -euo pipefail
+          lake env lean -o .lake/build/lib/lean/DestructionAdmissibilityKernelV1.olean lean_ci/DestructionAdmissibilityKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/TemporalDestructionKernelV1.olean lean_ci/TemporalDestructionKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/TemporalContractExtensionV1.olean lean_ci/TemporalContractExtensionV1.lean
+          lake env lean -o .lake/build/lib/lean/TemporalHorizonKernelV1.olean lean_ci/TemporalHorizonKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/CapabilityDebtKernelV1.olean lean_ci/CapabilityDebtKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/JointHorizonCapabilityKernelV1.olean lean_ci/JointHorizonCapabilityKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/CriticalHorizonKernelV1.olean lean_ci/CriticalHorizonKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/RobustRightToForgetKernelV1.olean lean_ci/RobustRightToForgetKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/RobustFuturePriceKernelV1.olean lean_ci/RobustFuturePriceKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/TwoClockKernelV1.olean lean_ci/TwoClockKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/CausalPriceFactorizationKernelV1.olean lean_ci/CausalPriceFactorizationKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/HigherOrderPriceInteractionKernelV1.olean lean_ci/HigherOrderPriceInteractionKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/HiddenPriceDepthKernelV1.olean lean_ci/HiddenPriceDepthKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/HiddenPriceTransversalKernelV1.olean lean_ci/HiddenPriceTransversalKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/NoLocalAuditorKernelV1.olean lean_ci/NoLocalAuditorKernelV1.lean
+          lake env lean -o .lake/build/lib/lean/SilentFutureKernelV1.olean lean_ci/SilentFutureKernelV1.lean
+
+      - name: Kernel-check dynamical hidden debt kernel
+        id: kernel
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/DynamicalHiddenDebtKernelV1.olean lean_ci/DynamicalHiddenDebtKernelV1.lean 2>&1 | tee lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_OUTPUT.txt
+
+      - name: Persist diagnostics if Lean fails
+        if: steps.kernel.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_OUTPUT.txt lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture dynamical hidden debt diagnostics [skip ci]' || true
+          git push
+          exit 1
+
+      - name: Bundled leanchecker independent replay
+        if: steps.kernel.outcome == 'success'
+        run: |
+          set -euo pipefail
+          if [ -x leanchecker ]; then
+            ./leanchecker lean_ci/DynamicalHiddenDebtKernelV1.lean | tee lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_LEANCHECKER.txt
+          elif [ -x ./leanchecker/leanchecker ]; then
+            ./leanchecker/leanchecker lean_ci/DynamicalHiddenDebtKernelV1.lean | tee lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_LEANCHECKER.txt
+          else
+            find . -maxdepth 3 -type f -name 'leanchecker*' -print
+            echo 'Bundled leanchecker not found' >&2
+            exit 1
+          fi
+
+      - name: Verify no placeholders or custom axioms
+        if: steps.kernel.outcome == 'success'
+        run: |
+          set -euo pipefail
+          ! grep -nE '\b(sorry|admit)\b' lean_ci/DynamicalHiddenDebtKernelV1.lean
+          ! grep -nE '^\s*axiom\b' lean_ci/DynamicalHiddenDebtKernelV1.lean
+          echo 'NO_PLACEHOLDERS_OR_CUSTOM_AXIOMS=PASS' | tee lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_AUDIT.txt
+
+      - name: Build certification receipt
+        if: steps.kernel.outcome == 'success'
+        run: |
+          set -euo pipefail
+          {
+            echo 'INSACERMO DYNAMICAL HIDDEN DEBT KERNEL V1'
+            echo 'LEAN KERNEL CHECK: PASS'
+            echo 'INDEPENDENT LEANCHECKER REPLAY: PASS'
+            echo 'PLACEHOLDER/CUSTOM AXIOM AUDIT: PASS'
+            echo "COMMIT=${GITHUB_SHA}"
+            sha256sum lean_ci/DynamicalHiddenDebtKernelV1.lean
+            sha256sum .lake/build/lib/lean/DynamicalHiddenDebtKernelV1.olean
+          } | tee lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_CERTIFICATION.txt
+
+      - name: Upload evidence
+        if: steps.kernel.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_DYNAMICAL_HIDDEN_DEBT_KERNEL_V1
+          path: |
+            lean_ci/DynamicalHiddenDebtKernelV1.lean
+            .lake/build/lib/lean/DynamicalHiddenDebtKernelV1.olean
+            lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_OUTPUT.txt
+            lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_AUDIT.txt
+            lean_ci/DYNAMICAL_HIDDEN_DEBT_KERNEL_V1_CERTIFICATION.txt
