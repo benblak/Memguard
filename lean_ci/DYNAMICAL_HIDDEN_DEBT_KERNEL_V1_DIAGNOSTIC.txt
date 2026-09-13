@@ -1,0 +1,28 @@
+DynamicalHiddenDebtKernelV1.lean:30:6: error: omega could not prove the goal:
+a possible counterexample may satisfy the constraints
+  c ≥ 0
+  b ≥ 0
+  b - c ≥ 1
+  a ≥ 1
+  a - b + c ≤ -1
+where
+ a := ↑(trajectory reserveStep H t)
+ b := ↑H
+ c := ↑t
+DynamicalHiddenDebtKernelV1.lean:29:48: warning: This simp argument is unused:
+  ih
+
+Hint: Omit it from the simp argument list.
+  simp [reserveAt, trajectory, reserveStep,̵ ̵i̵h̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+DynamicalHiddenDebtKernelV1.lean:167:10: error: Tactic `introN` failed: There are no additional binders or `let` bindings in the goal to introduce
+
+case refine_7
+H k N : ℕ
+⊢ (∀ t < H, GloballySafe (DynamicalDebtPrice H (k + 1) (max (N + 1) 2)) t) ∧
+    ∀ (t : ℕ),
+      H ≤ t →
+        DynamicalDebtPrice H (k + 1) (max (N + 1) 2) t Finset.univ = max (N + 1) 2 ∧
+          ¬GloballySafe (DynamicalDebtPrice H (k + 1) (max (N + 1) 2)) t
+DynamicalHiddenDebtKernelV1.lean:169:2: error: No goals to be solved
