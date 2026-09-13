@@ -1,0 +1,38 @@
+RigidityStressKernelV1.lean:12:5: error: unexpected token 'in'; expected ','
+RigidityStressKernelV1.lean:23:32: error: unsolved goals
+Req : Type u_1
+inst✝ : DecidableEq Req
+w : Req → ℕ
+q : Req
+⊢ sorry w {q} = w q
+RigidityStressKernelV1.lean:24:8: warning: declaration uses `sorry`
+RigidityStressKernelV1.lean:32:63: error: unsolved goals
+Req : Type u_1
+inst✝ : DecidableEq Req
+wA wB : Req → ℕ
+h₁ : ∀ (q : Req), ModularPrice wA {q} = ModularPrice wB {q}
+hw : ∀ (q : Req), wA q = wB q
+S : Finset Req
+⊢ sorry wA S = sorry wB S
+RigidityStressKernelV1.lean:35:11: warning: declaration uses `sorry`
+RigidityStressKernelV1.lean:37:22: warning: This simp argument is unused:
+  hw
+
+Hint: Omit it from the simp argument list.
+  simp [ModularPrice,̵ ̵h̵w̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RigidityStressKernelV1.lean:47:2: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+RigidityStressKernelV1.lean:112:4: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
