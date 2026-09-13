@@ -1,0 +1,34 @@
+SignedInteractionZeroCutKernelV1.lean:27:25: error: unsolved goals
+Req : Type u_1
+inst✝¹ : Fintype Req
+inst✝ : DecidableEq Req
+c : Finset Req → ℤ
+S : Finset Req
+U : Finset (Finset Req) := univ.powerset
+A : Finset (Finset Req) := {T ∈ U | T ⊆ S}
+B : Finset (Finset Req) := {T ∈ U | ¬T ⊆ S}
+T : Finset Req
+⊢ T ⊆ S ∨ ¬T ⊆ S
+SignedInteractionZeroCutKernelV1.lean:35:10: error: Function expected at
+  hTB
+but this term has type
+  T ∈ U ∧ ¬T ⊆ S
+
+Note: Expected a function because this term is being applied to the argument
+  hTA.2
+SignedInteractionZeroCutKernelV1.lean:36:6: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  U
+in the target expression
+  univ.powerset.sum c = S.powerset.sum c + {T ∈ univ.powerset | ¬T ⊆ S}.sum c
+
+Req : Type u_1
+inst✝¹ : Fintype Req
+inst✝ : DecidableEq Req
+c : Finset Req → ℤ
+S : Finset Req
+U : Finset (Finset Req) := univ.powerset
+A : Finset (Finset Req) := {T ∈ U | T ⊆ S}
+B : Finset (Finset Req) := {T ∈ U | ¬T ⊆ S}
+hU : U = A ∪ B
+hdis : Disjoint A B
+⊢ univ.powerset.sum c = S.powerset.sum c + {T ∈ univ.powerset | ¬T ⊆ S}.sum c
