@@ -258,21 +258,13 @@ theorem robustSafe_iff_before_twoClockBoundary
   unfold TwoClockBoundary
   let τD := DestructionCriticalHorizon Win Γ C d x hevD
   let τV := ViabilityCriticalHorizon Win Γ C x hevV
-  change (h < τV ∧ h < τD) ↔ h < Nat.min τD τV
-  by_cases hDV : τD ≤ τV
-  · rw [Nat.min_eq_left hDV]
-    constructor
-    · rintro ⟨hv, hd⟩
-      exact hd
-    · intro hd
-      exact ⟨lt_of_lt_of_le hd hDV, hd⟩
-  · have hVD : τV ≤ τD := by omega
-    rw [Nat.min_eq_right hVD]
-    constructor
-    · rintro ⟨hv, hd⟩
-      exact hv
-    · intro hv
-      exact ⟨hv, lt_of_lt_of_le hv hVD⟩
+  change (h < τV ∧ h < τD) ↔ h < min τD τV
+  rw [lt_min_iff]
+  constructor
+  · rintro ⟨hv, hd⟩
+    exact ⟨hd, hv⟩
+  · rintro ⟨hd, hv⟩
+    exact ⟨hv, hd⟩
 
 /-- If both clocks eventually ring, strong robust safety is eventually revoked. -/
 theorem twoClock_everRobustRevoked
