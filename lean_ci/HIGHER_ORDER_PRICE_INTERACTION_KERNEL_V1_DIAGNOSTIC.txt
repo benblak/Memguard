@@ -1,0 +1,9 @@
+HigherOrderPriceInteractionKernelV1.lean:92:5: error: unexpected token 'local'; expected '_' or identifier
+HigherOrderPriceInteractionKernelV1.lean:92:4: error: Missing alternative name: Expected `local` or `global`
+HigherOrderPriceInteractionKernelV1.lean:91:4: error: Alternative `local` has not been provided
+HigherOrderPriceInteractionKernelV1.lean:91:4: error: Alternative `global` has not been provided
+HigherOrderPriceInteractionKernelV1.lean:92:11: error: unexpected identifier; expected 'add_aesop_rules', 'binder_predicate', 'builtin_cbv_simproc', 'builtin_dsimproc', 'builtin_simproc', 'cbv_simproc', 'def_eval_config_item', 'dsimproc', 'elab', 'elab_rules', 'grind_pattern', 'infix', 'infixl', 'infixr', 'instance', 'macro', 'macro_rules', 'notation', 'notation3', 'postfix', 'prefix', 'simproc', 'syntax' or 'unif_hint'
+HigherOrderPriceInteractionKernelV1.lean:106:3: error: unexpected token 'local'; expected '_' or identifier
+HigherOrderPriceInteractionKernelV1.lean:106:2: error: Missing alternative name: Expected `local`
+HigherOrderPriceInteractionKernelV1.lean:104:2: error: Alternative `local` has not been provided
+HigherOrderPriceInteractionKernelV1.lean:106:9: error: unexpected identifier; expected 'add_aesop_rules', 'binder_predicate', 'builtin_cbv_simproc', 'builtin_dsimproc', 'builtin_simproc', 'cbv_simproc', 'def_eval_config_item', 'dsimproc', 'elab', 'elab_rules', 'grind_pattern', 'infix', 'infixl', 'infixr', 'instance', 'macro', 'macro_rules', 'notation', 'notation3', 'postfix', 'prefix', 'simproc', 'syntax' or 'unif_hint'
