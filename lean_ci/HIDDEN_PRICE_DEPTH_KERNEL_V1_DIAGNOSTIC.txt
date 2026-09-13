@@ -1,0 +1,26 @@
+HiddenPriceDepthKernelV1.lean:198:60: error: Tactic `assumption` failed
+
+A : Type u
+Req : Type v
+cost : A → ℕ
+Sat : A → Req → Prop
+Q : Finset Req
+hevQ : SetFeasible cost Sat Q
+S : Finset Req
+⊢ S ⊆ Q
+HiddenPriceDepthKernelV1.lean:240:2: error: Type mismatch
+  exists_subcritical_obstruction cost Sat Q hevQ
+has type
+  ∃ n, HasSubcriticalObstructionOfSize cost Sat Q (SetPrice cost Sat Q hevQ) n
+but is expected to have type
+  HasSubcriticalObstructionOfSize cost Sat Q (SetPrice cost Sat Q hevQ) Q.card
+HiddenPriceDepthKernelV1.lean:256:60: error: Tactic `assumption` failed
+
+A : Type u
+Req : Type v
+cost : A → ℕ
+Sat : A → Req → Prop
+Q : Finset Req
+hevQ : SetFeasible cost Sat Q
+S : Finset Req
+⊢ S ⊆ Q
