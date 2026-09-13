@@ -253,7 +253,8 @@ theorem doNothing_safeThrough_zero :
   intro h hh
   have hz : h = 0 := by omega
   subst h
-  simpa [IntervenedSafeAt, repairApply] using uncertain_forget_safe_zero
+  change RobustSafeAt WinU UContract UEnvelope forgetU UState.rich 0
+  exact uncertain_forget_safe_zero
 
 /-- Horizon zero is feasible with zero budget. -/
 theorem witness_feasible_zero :
@@ -266,7 +267,7 @@ theorem witness_feasible_zero :
 theorem restore_safeAt_all (h : Nat) :
     IntervenedSafeAt WinU UContract UEnvelope repairApply
       forgetU UState.rich Repair.restore h := by
-  constructor <;> intro c hc q hq <;> simp [repairApply, forgetU, WinU]
+  constructor <;> intro c hc q hq <;> simp [repairApply, WinU]
 
 /-- Therefore restoration buys safety through every finite horizon, in particular horizon one. -/
 theorem restore_safeThrough_one :
@@ -288,10 +289,8 @@ theorem doNothing_not_safeThrough_one :
       forgetU UState.rich Repair.doNothing 1 := by
   intro hs
   have h1 := hs 1 le_rfl
-  have hrobust :
-      RobustSafeAt WinU UContract UEnvelope forgetU UState.rich 1 := by
-    simpa [IntervenedSafeAt, repairApply] using h1
-  exact uncertain_forget_revoked_one hrobust
+  change RobustSafeAt WinU UContract UEnvelope forgetU UState.rich 1 at h1
+  exact uncertain_forget_revoked_one h1
 
 /-- Any budget below five is insufficient for horizon one. -/
 theorem witness_not_affordable_below_five
