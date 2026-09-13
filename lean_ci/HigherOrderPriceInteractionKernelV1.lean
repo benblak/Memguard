@@ -88,27 +88,29 @@ theorem proper_subset_price_eq_one
   · rcases price_affordable
       (hoCost n M) (GoodFor (hoSat n) S) (ho_set_feasible n M S) with
       ⟨a, hcost, hgood⟩
-    cases a with
-    | local T hT => simpa [hoCost] using hcost
-    | global =>
-        have hMp : M ≤ Price (hoCost n M) (GoodFor (hoSat n) S)
-            (ho_set_feasible n M S) := by
-          simpa [hoCost] using hcost
-        exact le_trans hM hMp
+    cases a
+    next T hT =>
+      simpa [hoCost] using hcost
+    next =>
+      have hMp : M ≤ Price (hoCost n M) (GoodFor (hoSat n) S)
+          (ho_set_feasible n M S) := by
+        simpa [hoCost] using hcost
+      exact le_trans hM hMp
 
 /-- Only the global intervention can satisfy the full requirement universe. -/
 theorem full_good_forces_global
     (a : HORepair n)
     (hgood : GoodFor (hoSat n) Finset.univ a) :
     a = HORepair.global := by
-  cases a with
-  | global => rfl
-  | local S hproper =>
-      exfalso
-      apply hproper
-      apply Finset.eq_univ_of_forall
-      intro q
-      exact hgood q (by simp)
+  cases a
+  next S hproper =>
+    exfalso
+    apply hproper
+    apply Finset.eq_univ_of_forall
+    intro q
+    exact hgood q (by simp)
+  next =>
+    rfl
 
 /-- The full requirement universe has exact price M. -/
 theorem full_price_eq_M (M : Nat) :
