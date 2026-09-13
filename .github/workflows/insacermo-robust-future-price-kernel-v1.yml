@@ -84,7 +84,7 @@ jobs:
         working-directory: lean_ci
         run: |
           set -euo pipefail
-          lake env leanchecker RobustFuturePriceKernelV1.lean
+          lake env leanchecker -v RobustFuturePriceKernelV1 | tee ROBUST_FUTURE_PRICE_KERNEL_V1_LEANCHECKER.txt
 
       - name: Verify no placeholders or custom axioms
         if: steps.kernel.outcome == 'success'
@@ -119,24 +119,33 @@ jobs:
 
       - name: Build certification receipt
         if: steps.kernel.outcome == 'success'
+        working-directory: lean_ci
         run: |
           set -euo pipefail
-          mkdir -p evidence
-          cp lean_ci/RobustFuturePriceKernelV1.lean evidence/
-          cp lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_OUTPUT.txt evidence/
-          cat > evidence/CERTIFICATE.txt <<EOF
-          INSACERMO ROBUST FUTURE PRICE KERNEL V1
-          commit=${GITHUB_SHA}
-          lean=4.32.1
-          kernel_check=success
-          leanchecker_replay=success
-          placeholders=none
-          custom_axioms=none
-          EOF
+          printf '%s\n' \
+            'INSACERMO ROBUST FUTURE PRICE KERNEL V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Kernel check: success' \
+            'Leanchecker independent replay: success' \
+            'Placeholders/custom axioms: none' \
+            > ROBUST_FUTURE_PRICE_KERNEL_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/RobustFuturePriceKernelV1.olean ./RobustFuturePriceKernelV1.olean
+          sha256sum RobustFuturePriceKernelV1.lean RobustFuturePriceKernelV1.olean ROBUST_FUTURE_PRICE_KERNEL_V1_OUTPUT.txt ROBUST_FUTURE_PRICE_KERNEL_V1_LEANCHECKER.txt ROBUST_FUTURE_PRICE_KERNEL_V1_CERTIFICATE.txt > ROBUST_FUTURE_PRICE_KERNEL_V1_SHA256SUMS.txt
 
       - name: Upload evidence
         if: steps.kernel.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: INSACERMO_ROBUST_FUTURE_PRICE_KERNEL_V1
-          path: evidence/
+          path: |
+            lean_ci/RobustFuturePriceKernelV1.lean
+            lean_ci/RobustFuturePriceKernelV1.olean
+            lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_OUTPUT.txt
+            lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_CERTIFICATE.txt
+            lean_ci/ROBUST_FUTURE_PRICE_KERNEL_V1_SHA256SUMS.txt
+          if-no-files-found: error
