@@ -1,0 +1,23 @@
+RobustRightToForgetKernelV1.lean:132:2: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+RobustRightToForgetKernelV1.lean:133:19: error: Tactic `rcases` failed: `hnot : (∀ c ∈ C h, ∀ q ∈ Γ h, Win x c q) →
+  ∃ c ∈ C h, ∃ q ∈ Γ h, ¬Win (d x) c q` is not an inductive datatype
+RobustRightToForgetKernelV1.lean:154:2: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+RobustRightToForgetKernelV1.lean:288:21: warning: This simp argument is unused:
+  ToggleCap
+
+Hint: Omit it from the simp argument list.
+  simp [WinToggle,̵ ̵T̵o̵g̵g̵l̵e̵C̵a̵p̵] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
