@@ -1,0 +1,125 @@
+name: INSACERMO Monotone Signed Cancellation Kernel V1
+
+on:
+  push:
+    branches:
+      - insacermo-monotone-signed-cancellation-kernel-v1
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Lean 4.32.1
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare mathlib
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake update
+          lake exe cache get
+          mkdir -p .lake/build/lib/lean
+
+      - name: Build signed zero-cut dependency
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env lean -o .lake/build/lib/lean/SignedInteractionZeroCutKernelV1.olean SignedInteractionZeroCutKernelV1.lean
+
+      - name: Kernel-check monotone signed cancellation kernel
+        id: kernel
+        continue-on-error: true
+        working-directory: lean_ci
+        run: |
+          set -o pipefail
+          lake env lean -o .lake/build/lib/lean/MonotoneSignedCancellationKernelV1.olean MonotoneSignedCancellationKernelV1.lean 2>&1 | tee MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_OUTPUT.txt
+
+      - name: Persist diagnostics if Lean fails
+        if: steps.kernel.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          cp lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_OUTPUT.txt lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_DIAGNOSTIC.txt
+          git commit -m 'Capture monotone signed cancellation diagnostics [skip ci]' || true
+          git push
+          exit 1
+
+      - name: Bundled leanchecker independent replay
+        if: steps.kernel.outcome == 'success'
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          lake env leanchecker -v MonotoneSignedCancellationKernelV1 | tee MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_LEANCHECKER.txt
+
+      - name: Verify no placeholders or custom axioms
+        if: steps.kernel.outcome == 'success'
+        working-directory: lean_ci
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          p = Path('MonotoneSignedCancellationKernelV1.lean')
+          s = p.read_text()
+          out=[]; i=0; depth=0
+          while i < len(s):
+              if s.startswith('/-', i): depth += 1; i += 2; continue
+              if depth and s.startswith('-/', i): depth -= 1; i += 2; continue
+              if depth:
+                  out.append('\n' if s[i]=='\n' else ' '); i += 1; continue
+              if s.startswith('--', i):
+                  j=s.find('\n', i)
+                  if j<0: break
+                  out.append('\n'); i=j+1; continue
+              out.append(s[i]); i += 1
+          code=''.join(out)
+          bad=[]
+          for n,line in enumerate(code.splitlines(),1):
+              if re.search(r'\b(?:sorry|admit)\b', line): bad.append((n,line))
+              if re.search(r'^\s*axiom\b', line): bad.append((n,line))
+          if bad:
+              for n,line in bad: print(f'{n}:{line}')
+              raise SystemExit(1)
+          print('No sorry/admit/custom axiom placeholders found in executable Lean code.')
+          PY
+
+      - name: Build certification receipt
+        if: steps.kernel.outcome == 'success'
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'INSACERMO MONOTONE SIGNED CANCELLATION KERNEL V1 — CERTIFICATION' \
+            '' \
+            "Run: ${GITHUB_RUN_ID}" \
+            "Commit: ${GITHUB_SHA}" \
+            'Lean: 4.32.1' \
+            'mathlib: v4.32.1' \
+            'Kernel check: success' \
+            'Leanchecker independent replay: success' \
+            'Placeholders/custom axioms: none' \
+            > MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_CERTIFICATE.txt
+          cp .lake/build/lib/lean/MonotoneSignedCancellationKernelV1.olean ./MonotoneSignedCancellationKernelV1.olean
+          sha256sum MonotoneSignedCancellationKernelV1.lean MonotoneSignedCancellationKernelV1.olean MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_OUTPUT.txt MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_LEANCHECKER.txt MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_CERTIFICATE.txt > MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_SHA256SUMS.txt
+
+      - name: Upload evidence
+        if: steps.kernel.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_MONOTONE_SIGNED_CANCELLATION_KERNEL_V1
+          path: |
+            lean_ci/MonotoneSignedCancellationKernelV1.lean
+            lean_ci/MonotoneSignedCancellationKernelV1.olean
+            lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_OUTPUT.txt
+            lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_LEANCHECKER.txt
+            lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_CERTIFICATE.txt
+            lean_ci/MONOTONE_SIGNED_CANCELLATION_KERNEL_V1_SHA256SUMS.txt
+          if-no-files-found: error
