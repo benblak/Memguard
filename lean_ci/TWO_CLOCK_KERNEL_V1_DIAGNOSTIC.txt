@@ -1,0 +1,80 @@
+TwoClockKernelV1.lean:137:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RobustDestructionDebtAt Win Γ C d x)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+TwoClockKernelV1.lean:262:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  min τD τV
+in the target expression
+  h < τV ∧ h < τD ↔ h < τD.min τV
+
+case pos
+State : Type u
+Req : Type v
+Cap : Type w
+Win : State → Cap → Req → Prop
+Γ : ℕ → Set Req
+C : ℕ → Set Cap
+hΓ : ContractMonotoneNat Γ
+hC : EnvelopeMonotone C
+d : State → State
+x : State
+hevD : EverDestructionDebt Win Γ C d x
+hevV : EverSourceFailure Win Γ C x
+h : ℕ
+τD : ℕ := DestructionCriticalHorizon Win Γ C d x hevD
+τV : ℕ := ViabilityCriticalHorizon Win Γ C x hevV
+hDV : τD ≤ τV
+⊢ h < τV ∧ h < τD ↔ h < τD.min τV
+TwoClockKernelV1.lean:269:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  min τD τV
+in the target expression
+  h < τV ∧ h < τD ↔ h < τD.min τV
+
+case neg
+State : Type u
+Req : Type v
+Cap : Type w
+Win : State → Cap → Req → Prop
+Γ : ℕ → Set Req
+C : ℕ → Set Cap
+hΓ : ContractMonotoneNat Γ
+hC : EnvelopeMonotone C
+d : State → State
+x : State
+hevD : EverDestructionDebt Win Γ C d x
+hevV : EverSourceFailure Win Γ C x
+h : ℕ
+τD : ℕ := DestructionCriticalHorizon Win Γ C d x hevD
+τV : ℕ := ViabilityCriticalHorizon Win Γ C x hevV
+hDV : ¬τD ≤ τV
+hVD : τV ≤ τD
+⊢ h < τV ∧ h < τD ↔ h < τD.min τV
+TwoClockKernelV1.lean:281:5: warning: Variable name `hevD` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+TwoClockKernelV1.lean:308:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred fun n => ¬RobustSafeAt Win Γ C d x n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+TwoClockKernelV1.lean:564:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RobustDestructionDebtAt ClockWin DFContract DFEnvelope clockDestroy intact)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+TwoClockKernelV1.lean:584:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred fun n => ¬ViableAt ClockWin DFContract DFEnvelope intact n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+TwoClockKernelV1.lean:610:95: error: unsolved goals
+⊢ 1 < 2
+TwoClockKernelV1.lean:636:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred (RobustDestructionDebtAt ClockWin VFContract VFEnvelope clockDestroy intact)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+TwoClockKernelV1.lean:656:10: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidablePred fun n => ¬ViableAt ClockWin VFContract VFEnvelope intact n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+TwoClockKernelV1.lean:683:100: error: unsolved goals
+⊢ 1 < 2
