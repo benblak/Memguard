@@ -79,8 +79,9 @@ noncomputable def CriticalHorizon
     (Win : State → Cap → Req → Prop)
     (Γ : Nat → Set Req) (cap : Nat → Cap)
     (d : State → State) (x : State)
-    (hev : EverRevoked Win Γ cap d x) : Nat :=
-  Nat.find hev
+    (hev : EverRevoked Win Γ cap d x) : Nat := by
+  classical
+  exact Nat.find hev
 
 /-- The critical horizon is itself revoked. -/
 theorem criticalHorizon_revoked
@@ -89,6 +90,7 @@ theorem criticalHorizon_revoked
     (d : State → State) (x : State)
     (hev : EverRevoked Win Γ cap d x) :
     RevokedAt Win Γ cap d x (CriticalHorizon Win Γ cap d x hev) := by
+  classical
   exact Nat.find_spec hev
 
 /-- Every earlier horizon is admissible by minimality of the first revocation. -/
@@ -99,6 +101,7 @@ theorem admissible_before_criticalHorizon
     (hev : EverRevoked Win Γ cap d x)
     {h : Nat} (hlt : h < CriticalHorizon Win Γ cap d x hev) :
     JointAdmissible Win Γ cap d x h := by
+  classical
   by_contra hrev
   have hmin : CriticalHorizon Win Γ cap d x hev ≤ h := by
     exact Nat.find_min' hev hrev
@@ -312,6 +315,7 @@ theorem certified_joint_ever_revoked :
 theorem certified_criticalHorizon_eq_one :
     CriticalHorizon WinJoint JointContract JointCap forgetNow MemoryState.rich
       certified_joint_ever_revoked = 1 := by
+  classical
   have hle :
       CriticalHorizon WinJoint JointContract JointCap forgetNow MemoryState.rich
         certified_joint_ever_revoked ≤ 1 := by
