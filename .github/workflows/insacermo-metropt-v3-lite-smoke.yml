@@ -1,0 +1,47 @@
+name: INSACERMO MetroPT V3-Lite Smoke
+
+on:
+  push:
+    branches:
+      - insacermo-metropt-v3-lite-smoke
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install frozen dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy==2.3.3' 'pandas==2.3.2' 'scikit-learn==1.7.2'
+      - name: Run diagnostic-only V3-Lite
+        env:
+          INSACERMO_OUT: metropt_v3_lite_results
+        run: |
+          set -euo pipefail
+          cd empirical
+          python metropt_multistep_probe_v3_lite.py 2>&1 | tee ../metropt_v3_lite_console.txt
+      - name: Print diagnostic
+        run: |
+          set -euo pipefail
+          cat metropt_v3_lite_results/METROPT_V3_LITE_RESULTS.json
+      - name: Upload smoke evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_METROPT_V3_LITE_SMOKE
+          path: |
+            metropt_v3_lite_results/
+            metropt_v3_lite_console.txt
+            empirical/metropt_multistep_probe_v3_lite.py
+          if-no-files-found: error
+          retention-days: 30
