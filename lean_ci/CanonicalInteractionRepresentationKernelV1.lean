@@ -19,8 +19,7 @@ def CanonicalCoeff {Req : Type*} [DecidableEq Req]
   P S - S.ssubsets.sum (fun T => CanonicalCoeff P T)
 termination_by S.card
 decreasing_by
-  simp_all only [Finset.mem_ssubsets]
-  exact Finset.card_lt_card ‹_›
+  exact Finset.card_lt_card (Finset.mem_ssubsets.mp (by assumption))
 
 /-- The canonical coefficient closes the triangular reconstruction equation on
 its own coalition. -/
@@ -28,7 +27,8 @@ theorem canonicalCoeff_add_strict_sum
     {Req : Type*} [DecidableEq Req]
     (P : Finset Req → Int) (S : Finset Req) :
     CanonicalCoeff P S + S.ssubsets.sum (CanonicalCoeff P) = P S := by
-  rw [CanonicalCoeff]
+  change (P S - S.ssubsets.sum (CanonicalCoeff P)) +
+      S.ssubsets.sum (CanonicalCoeff P) = P S
   omega
 
 /-- The powerset sum splits into the coefficient on S plus the sum over strict
@@ -73,12 +73,11 @@ theorem representation_unique
     (ha : Represents P a) (hb : Represents P b) :
     a = b := by
   funext S
-  induction S using Finset.strongInductionOn with
-  | h S ih =>
-      apply coefficient_eq_of_strict_agreement (ha S) (hb S)
-      intro T hT
-      have hsub : T ⊂ S := Finset.mem_ssubsets.mp hT
-      exact ih T hsub
+  refine Finset.strongInductionOn S ?_
+  intro S ih
+  apply coefficient_eq_of_strict_agreement (ha S) (hb S)
+  intro T hT
+  exact ih T (Finset.mem_ssubsets.mp hT)
 
 /-- Canonicality: any coefficient system representing P is exactly the
 canonical coefficient system. -/
@@ -105,8 +104,10 @@ theorem canonical_zero_cut
     (P : Finset Req → Int) (S : Finset Req) :
     P S = P (Finset.univ : Finset Req) ↔
       OmittedMass (CanonicalCoeff P) S = 0 := by
-  have hrep := canonicalCoeff_represents P
-  rw [hrep S, hrep (Finset.univ : Finset Req)]
+  have hrep : Represents P (CanonicalCoeff P) := canonicalCoeff_represents P
+  have hS := hrep S
+  have hU := hrep (Finset.univ : Finset Req)
+  rw [hS, hU]
   exact full_price_iff_zero_omitted_mass (CanonicalCoeff P) S
 
 /-- CANONICAL INTERACTION REPRESENTATION KERNEL V1.
