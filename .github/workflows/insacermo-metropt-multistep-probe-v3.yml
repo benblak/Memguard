@@ -1,0 +1,73 @@
+name: INSACERMO MetroPT Multi-Step PROBE V3
+
+on:
+  push:
+    branches:
+      - insacermo-metropt-multistep-probe-v3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install frozen dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy==2.3.3' 'pandas==2.3.2' 'scikit-learn==1.7.2'
+
+      - name: Verify frozen V3 protocol exists before execution
+        run: |
+          set -euo pipefail
+          test -s empirical/METROPT_MULTISTEP_PROBE_V3_PROTOCOL.md
+          git log --format='%H %s' -- empirical/METROPT_MULTISTEP_PROBE_V3_PROTOCOL.md | head -5
+
+      - name: Run multi-step PROBE audit
+        env:
+          INSACERMO_OUT: empirical/metropt_multistep_v3_results
+        run: |
+          set -euo pipefail
+          cd empirical
+          python metropt_multistep_probe_v3.py 2>&1 | tee metropt_multistep_v3_console.txt
+
+      - name: Print verdict
+        run: |
+          set -euo pipefail
+          cat empirical/metropt_multistep_v3_results/METROPT_MULTISTEP_PROBE_V3_REPORT.md
+          echo '--- machine receipt ---'
+          cat empirical/metropt_multistep_v3_results/METROPT_MULTISTEP_PROBE_V3_RESULTS.json
+
+      - name: Hash package
+        run: |
+          set -euo pipefail
+          {
+            printf '%s\0' \
+              empirical/METROPT_MULTISTEP_PROBE_V3_PROTOCOL.md \
+              empirical/metropt_multistep_probe_v3.py \
+              empirical/metropt_multistep_v3_console.txt
+            find empirical/metropt_multistep_v3_results -type f -print0
+          } | sort -z | xargs -0 sha256sum > empirical/METROPT_MULTISTEP_PROBE_V3_SHA256SUMS.txt
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_METROPT_MULTISTEP_PROBE_V3
+          path: |
+            empirical/METROPT_MULTISTEP_PROBE_V3_PROTOCOL.md
+            empirical/metropt_multistep_probe_v3.py
+            empirical/metropt_multistep_v3_results/
+            empirical/metropt_multistep_v3_console.txt
+            empirical/METROPT_MULTISTEP_PROBE_V3_SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 90
