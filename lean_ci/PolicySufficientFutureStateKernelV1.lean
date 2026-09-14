@@ -25,10 +25,12 @@ inductive Policy (State : Type u) (Obs : Type o) (Act : Type a)
 
 /-- Environment semantics used to execute one finite policy. ACT is admissible
 only when `legalAct` holds. A rejected ACT produces REFUSE, making refusal part
-of the externally visible contractual behavior. -/
+of the externally visible contractual behavior. The final field supplies only
+the decidability witness needed to execute that same proposition. -/
 structure Semantics (State : Type u) (Obs : Type o) (Act : Type a) where
   observe : State → Obs
   legalAct : State → Act → Prop
+  legalActDecidable : ∀ s a, Decidable (legalAct s a)
 
 /-- Execute a finite contingent policy from a present state. The result records
 whether the policy ACTed, REFUSEd, or performed a PROBE and what it observed.
@@ -38,12 +40,16 @@ def runPolicy
     [DecidableEq Obs]
     (sem : Semantics State Obs Act) :
     State → Policy State Obs Act → TerminalResult Act Obs
-  | s, .act a => if sem.legalAct s a then .acted a else .refused
+  | s, .act a => by
+      letI : Decidable (sem.legalAct s a) := sem.legalActDecidable s a
+      exact if sem.legalAct s a then .acted a else .refused
   | _, .refuse => .refused
   | s, .probe next =>
       let o := sem.observe s
       match next o with
-      | .act a => if sem.legalAct s a then .acted a else .refused
+      | .act a => by
+          letI : Decidable (sem.legalAct s a) := sem.legalActDecidable s a
+          exact if sem.legalAct s a then .acted a else .refused
       | .refuse => .refused
       | p => .probed o
   | s, .repair step next => runPolicy sem (step s) next
