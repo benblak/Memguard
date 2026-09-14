@@ -1,0 +1,72 @@
+name: INSACERMO MetroPT Direct Actionability V2
+
+on:
+  push:
+    branches:
+      - insacermo-metropt-direct-actionability-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install frozen dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy==2.3.3' 'pandas==2.3.2' 'scikit-learn==1.7.2'
+
+      - name: Verify frozen V2 protocol exists before execution
+        run: |
+          set -euo pipefail
+          test -s empirical/METROPT_DIRECT_ACTIONABILITY_V2_PROTOCOL.md
+          git log --format='%H %s' -- empirical/METROPT_DIRECT_ACTIONABILITY_V2_PROTOCOL.md | head -5
+
+      - name: Run direct ACT-PROBE-REFUSE audit
+        env:
+          INSACERMO_OUT: empirical/metropt_actionability_v2_results
+        run: |
+          set -euo pipefail
+          python empirical/metropt_direct_actionability_v2.py 2>&1 | tee empirical/metropt_actionability_v2_console.txt
+
+      - name: Print verdict
+        run: |
+          set -euo pipefail
+          cat empirical/metropt_actionability_v2_results/METROPT_DIRECT_ACTIONABILITY_V2_REPORT.md
+          echo '--- machine receipt ---'
+          cat empirical/metropt_actionability_v2_results/METROPT_DIRECT_ACTIONABILITY_V2_RESULTS.json
+
+      - name: Hash package
+        run: |
+          set -euo pipefail
+          {
+            printf '%s\0' \
+              empirical/METROPT_DIRECT_ACTIONABILITY_V2_PROTOCOL.md \
+              empirical/metropt_direct_actionability_v2.py \
+              empirical/metropt_actionability_v2_console.txt
+            find empirical/metropt_actionability_v2_results -type f -print0
+          } | sort -z | xargs -0 sha256sum > empirical/METROPT_DIRECT_ACTIONABILITY_V2_SHA256SUMS.txt
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_METROPT_DIRECT_ACTIONABILITY_V2
+          path: |
+            empirical/METROPT_DIRECT_ACTIONABILITY_V2_PROTOCOL.md
+            empirical/metropt_direct_actionability_v2.py
+            empirical/metropt_actionability_v2_results/
+            empirical/metropt_actionability_v2_console.txt
+            empirical/METROPT_DIRECT_ACTIONABILITY_V2_SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 90
