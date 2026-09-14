@@ -1,0 +1,19 @@
+BeliefPolicySufficientFutureStateKernelV1.lean:66:2: error: No goals to be solved
+BeliefPolicySufficientFutureStateKernelV1.lean:83:18: error: failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+Theta : Type th
+S : Type s
+A : Type a
+O : Type o
+inst✝² : Fintype Theta
+inst✝¹ : Fintype S
+inst✝ : Fintype O
+sem : BeliefSemantics Theta S A O
+b : Belief Theta S
+a : A
+next : O → AdaptivePolicy Theta S A O
+o : O
+⊢ sizeOf (next o) = 0
+BeliefPolicySufficientFutureStateKernelV1.lean:100:4: error(lean.dependsOnNoncomputable): failed to compile definition, consider marking it as 'noncomputable' because it depends on 'runAdaptivePolicy', which is 'noncomputable'
