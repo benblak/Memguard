@@ -6,6 +6,7 @@ namespace InsacermoHiddenDepthMobiusBridge
 open Finset
 open InsacermoHiddenPriceDepth
 open InsacermoCausalPriceFactorization
+open InsacermoHigherOrderPriceInteraction
 open InsacermoCanonicalInteractionRepresentation
 
 universe u v
