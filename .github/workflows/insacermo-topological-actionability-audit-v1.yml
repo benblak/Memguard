@@ -1,0 +1,30 @@
+name: INSACERMO Topological Actionability Audit V1
+
+on:
+  push:
+    branches:
+      - insacermo-topological-actionability-kernel-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run exact cycle audit
+        run: |
+          set -euo pipefail
+          python empirical/topological_actionability_cycle_audit_v1.py | tee topological_actionability_cycle_audit_v1.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_TOPOLOGICAL_ACTIONABILITY_AUDIT_V1
+          path: |
+            empirical/topological_actionability_cycle_audit_v1.py
+            topological_actionability_cycle_audit_v1.txt
+          if-no-files-found: error
+          retention-days: 90
