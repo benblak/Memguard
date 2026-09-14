@@ -42,6 +42,8 @@ Thresholds are frozen from calibration data only:
 
 If these thresholds cross, the overlap is resolved conservatively by creating a no-ACT interval between their ordered values rather than allowing contradictory ACT decisions.
 
+To prevent the class prior alone from producing a trivial `ACT_CONTINUE` on this rare-event dataset, **no ACT is admissible before at least one real sensor group has been observed**. The first move of the active policies is therefore necessarily a PROBE. This rule is fixed before V2 execution.
+
 ## PROBE rule
 
 Maximum probe budget: **4 sensor groups**.
@@ -62,8 +64,8 @@ Compare:
 
 1. `ADAPTIVE_CONTRACT_PROBE`: chooses the next group from the current belief and remaining probes;
 2. `FIXED_ORDER_PROBE`: fixed calibration-only order determined once at the prior state, then used for every bin;
-3. `NO_PROBE`: no sensor acquisition; uncertain states REFUSE immediately;
-4. `FULL_SENSOR`: diagnostic upper reference using all sensor groups at once, not a cost-matched policy.
+3. `NO_PROBE`: no sensor acquisition; because at least one real probe is contractually required before ACT, this baseline always REFUSEs and serves only as the zero-information reference;
+4. `FULL_SENSOR`: diagnostic upper reference using all sensor groups at once, not a cost-matched policy and exempt from the minimum-one-probe rule because it observes every group simultaneously.
 
 No baseline is allowed to inspect the V2 audit labels when selecting its probe order or thresholds.
 
