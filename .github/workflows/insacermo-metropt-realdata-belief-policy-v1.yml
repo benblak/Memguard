@@ -56,11 +56,13 @@ jobs:
       - name: Hash audit package
         run: |
           set -euo pipefail
-          sha256sum \
-            empirical/METROPT_BELIEF_POLICY_V1_PREREG.md \
-            empirical/metropt_belief_policy_audit_v1.py \
-            empirical/metropt_results_v1/* \
-            empirical/metropt_results_v1_console.txt \
+          {
+            printf '%s\0' \
+              empirical/METROPT_BELIEF_POLICY_V1_PREREG.md \
+              empirical/metropt_belief_policy_audit_v1.py \
+              empirical/metropt_results_v1_console.txt
+            find empirical/metropt_results_v1 -type f -print0
+          } | sort -z | xargs -0 sha256sum \
             > empirical/METROPT_REALDATA_BELIEF_POLICY_V1_PACKAGE_SHA256SUMS.txt
 
       - name: Upload full empirical evidence
