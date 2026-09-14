@@ -1,0 +1,220 @@
+HiddenDepthMobiusBridgeKernelV1.lean:69:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:73:15: error(lean.unknownIdentifier): Unknown identifier `SetPrice`
+HiddenDepthMobiusBridgeKernelV1.lean:82:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:85:17: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:88:8: warning: declaration uses `sorry`
+HiddenDepthMobiusBridgeKernelV1.lean:95:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:98:6: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:100:8: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:101:6: error(lean.unknownIdentifier): Unknown identifier `contractPrice_of_subset`
+HiddenDepthMobiusBridgeKernelV1.lean:100:36: error: unsolved goals
+x✝¹ : Sort u_1
+SetFeasible : x✝¹
+x✝ : Sort u_2
+SetPrice : x✝
+A : Type u
+Req : Type v
+inst✝ : DecidableEq Req
+cost : A → ℕ
+Sat : A → Req → Prop
+Q : Finset Req
+hevQ : sorry
+S : Finset Req
+hSQ : S ⊆ Q
+⊢ ContractPrice cost Sat Q hevQ S = ContractPrice cost Sat Q hevQ Q ↔ sorry = sorry
+HiddenDepthMobiusBridgeKernelV1.lean:109:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:111:4: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:113:6: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:116:8: error(lean.unknownIdentifier): Unknown identifier `contractPrice_eq_full_iff_setPrice_eq_full`
+HiddenDepthMobiusBridgeKernelV1.lean:115:66: error: unsolved goals
+x✝¹ : Sort u_1
+SetFeasible : x✝¹
+x✝ : Sort u_2
+SetPrice : x✝
+A : Type u
+Req : Type v
+inst✝ : DecidableEq Req
+cost : A → ℕ
+Sat : A → Req → Prop
+Q : Finset Req
+hevQ : sorry
+S : Finset Req
+hSQ : S ⊆ Q
+⊢ sorry = sorry ↔ RelativeOmittedMass (CanonicalCoeff (ContractPrice cost Sat Q hevQ)) Q S = 0
+HiddenDepthMobiusBridgeKernelV1.lean:126:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:138:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:141:18: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:146:4: error: No goals to be solved
+HiddenDepthMobiusBridgeKernelV1.lean:164:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:167:2: error: No goals to be solved
+HiddenDepthMobiusBridgeKernelV1.lean:174:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:176:18: error(lean.unknownIdentifier): Unknown identifier `exists_canonical_zero_cut`
+HiddenDepthMobiusBridgeKernelV1.lean:174:62: error: unsolved goals
+x✝ : Sort ?u.1
+SetFeasible : x✝
+A : Type u
+Req : Type v
+inst✝ : DecidableEq Req
+cost : A → ℕ
+Sat : A → Req → Prop
+Q : Finset Req
+hevQ : sorry
+⊢ ℕ
+HiddenDepthMobiusBridgeKernelV1.lean:182:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:186:23: error(lean.unknownIdentifier): Unknown identifier `exists_canonical_zero_cut`
+HiddenDepthMobiusBridgeKernelV1.lean:193:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:219:29: error: Function expected at
+  SetFeasible
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetFeasible` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:223:7: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+HiddenDepthMobiusBridgeKernelV1.lean:225:8: error: Function expected at
+  SetPrice
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  cost
+
+Hint: The identifier `SetPrice` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
