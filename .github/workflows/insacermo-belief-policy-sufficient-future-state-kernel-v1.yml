@@ -16,8 +16,21 @@ jobs:
 
       - name: Install Lean 4.32.1
         run: |
-          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          set -euo pipefail
+          curl --retry 5 --retry-all-errors --retry-delay 5 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.elan/bin:$PATH"
+          for attempt in 1 2 3 4; do
+            if elan toolchain install leanprover/lean4:v4.32.1; then
+              break
+            fi
+            if [ "$attempt" -eq 4 ]; then
+              echo "Lean 4.32.1 installation failed after 4 attempts" >&2
+              exit 1
+            fi
+            rm -rf "$HOME/.elan/tmp"/* || true
+            sleep $((attempt * 10))
+          done
 
       - name: Prepare mathlib
         working-directory: lean_ci
