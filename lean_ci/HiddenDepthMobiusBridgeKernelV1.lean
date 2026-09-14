@@ -101,7 +101,12 @@ theorem contractPrice_eq_full_iff_setPrice_eq_full
         SetPrice cost Sat Q hevQ := by
   rw [contractPrice_of_subset cost Sat Q hevQ hSQ,
       contractPrice_of_subset cost Sat Q hevQ Finset.Subset.rfl]
-  norm_cast
+  have hQproof :
+      subset_feasible_of_full cost Sat
+        (show Q ⊆ Q from Finset.Subset.rfl) hevQ = hevQ := by
+    apply Subsingleton.elim
+  rw [hQproof]
+  simp
 
 /-- Canonical Möbius zero-cut criterion for the original contract-relative price. -/
 theorem setPrice_eq_full_iff_canonical_relative_zero_cut
@@ -165,7 +170,12 @@ theorem exists_canonical_zero_cut
     (Q : Finset Req) (hevQ : SetFeasible cost Sat Q) :
     ∃ n, HasCanonicalZeroCutOfSize cost Sat Q hevQ n := by
   refine ⟨Q.card, Q, Finset.Subset.rfl, rfl, ?_⟩
-  simp [RelativeOmittedMass]
+  unfold RelativeOmittedMass
+  have hempty : Q.powerset.filter (fun T => ¬ T ⊆ Q) = ∅ := by
+    ext T
+    simp
+  rw [hempty]
+  simp
 
 /-- Canonical zero-cut depth: the least coalition cardinality whose omitted
 canonical Möbius mass is zero relative to `Q`. -/
@@ -194,6 +204,7 @@ theorem hiddenPriceDepth_eq_canonicalZeroCutDepth
     (Q : Finset Req) (hevQ : SetFeasible cost Sat Q) :
     HiddenPriceDepth cost Sat Q hevQ =
       CanonicalZeroCutDepth cost Sat Q hevQ := by
+  classical
   apply Nat.le_antisymm
   · unfold HiddenPriceDepth
     apply Nat.find_min' (exists_subcritical_obstruction cost Sat Q hevQ)
