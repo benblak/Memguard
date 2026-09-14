@@ -1,6 +1,6 @@
 import Mathlib
 import MinimalSufficientFutureStateKernelV1
-import bayes_adaptive_kernel_v1
+import BayesAdaptiveKernelV1
 
 namespace InsacermoBeliefPolicySufficientFutureState
 
