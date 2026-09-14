@@ -63,32 +63,38 @@ theorem totalBayesUpdate_eq_bayesUpdate_of_pos
   classical
   unfold totalBayesUpdate
   simp only [dif_pos h]
-  congr
 
 /-- Execute a finite adaptive policy from a belief state. A probe exposes the
 full predictive law and recursively evaluates every observation-contingent
-continuation from the corresponding Bayes-updated belief. -/
+continuation from the corresponding Bayes-updated belief.
+
+The implementation uses the generated recursor rather than equation recursion:
+for a `probe`, the recursor supplies an induction hypothesis for every branch
+`next o`. This is only termination plumbing; the operational semantics is the
+same branchwise Bayes-adaptive semantics stated above. -/
 noncomputable def runAdaptivePolicy
     {Theta : Type th} {S : Type s} {A : Type a} {O : Type o}
     [Fintype Theta] [Fintype S] [Fintype O]
-    (sem : BeliefSemantics Theta S A O) :
-    Belief Theta S → AdaptivePolicy Theta S A O → BehaviorTree A O
-  | b, .act a => by
+    (sem : BeliefSemantics Theta S A O)
+    (b : Belief Theta S)
+    (p : AdaptivePolicy Theta S A O) : BehaviorTree A O :=
+  AdaptivePolicy.rec
+    (motive := fun _ => Belief Theta S → BehaviorTree A O)
+    (fun a b => by
       letI : Decidable (sem.legalAct b a) := sem.legalActDecidable b a
-      exact if sem.legalAct b a then .acted a else .refused
-  | _, .refuse => .refused
-  | b, .probe a next =>
+      exact if sem.legalAct b a then .acted a else .refused)
+    (fun _ => .refused)
+    (fun a _next ih b =>
       .chance
         (fun o => evidence b sem.transition sem.observation a o)
-        (fun o => runAdaptivePolicy sem (totalBayesUpdate sem b a o) (next o))
-  | b, .repair step next => runAdaptivePolicy sem (step b) next
-termination_by
-  b p => p
+        (fun o => ih o (totalBayesUpdate sem b a o)))
+    (fun step _next ih b => ih (step b))
+    p b
 
 /-- Two beliefs are policy-equivalent when every finite Bayes-adaptive
 ACT/PROBE/REPAIR/REFUSE policy generates exactly the same probabilistic behavior
 tree from both. -/
-def BeliefPolicyEq
+noncomputable def BeliefPolicyEq
     {Theta : Type th} {S : Type s} {A : Type a} {O : Type o}
     [Fintype Theta] [Fintype S] [Fintype O]
     (sem : BeliefSemantics Theta S A O)
@@ -97,7 +103,7 @@ def BeliefPolicyEq
 
 /-- Canonical belief-policy state: complete behavior signature against every
 finite adaptive policy. -/
-def CanonicalBeliefPolicyState
+noncomputable def CanonicalBeliefPolicyState
     {Theta : Type th} {S : Type s} {A : Type a} {O : Type o}
     [Fintype Theta] [Fintype S] [Fintype O]
     (sem : BeliefSemantics Theta S A O) (b : Belief Theta S) :
@@ -158,7 +164,7 @@ theorem distinguishing_adaptive_policy_forbids_safe_merge
 
 /-- Belief-state destruction/compression is safe exactly when it leaves the
 canonical Bayes-adaptive future state unchanged. -/
-def BeliefPolicyPreservingMap
+noncomputable def BeliefPolicyPreservingMap
     {Theta : Type th} {S : Type s} {A : Type a} {O : Type o}
     [Fintype Theta] [Fintype S] [Fintype O]
     (sem : BeliefSemantics Theta S A O)
