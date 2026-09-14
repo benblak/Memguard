@@ -27,12 +27,20 @@ jobs:
           lake exe cache get
           mkdir -p .lake/build/lib/lean
 
+      - name: Materialize certified Bayes kernel dependency
+        working-directory: lean_ci
+        run: |
+          set -euo pipefail
+          python3 patch_bayes_adaptive_kernel_v1.py
+          cp bayes_adaptive_kernel_v1.lean BayesAdaptiveKernelV1.lean
+          sha256sum BayesAdaptiveKernelV1.lean
+
       - name: Build historical dependencies
         working-directory: lean_ci
         run: |
           set -euo pipefail
           lake env lean -o .lake/build/lib/lean/MinimalSufficientFutureStateKernelV1.olean MinimalSufficientFutureStateKernelV1.lean
-          lake env lean -o .lake/build/lib/lean/bayes_adaptive_kernel_v1.olean bayes_adaptive_kernel_v1.lean
+          lake env lean -o .lake/build/lib/lean/BayesAdaptiveKernelV1.olean BayesAdaptiveKernelV1.lean
 
       - name: Kernel-check belief policy sufficient future state kernel
         id: kernel
@@ -104,6 +112,7 @@ jobs:
             "Commit: ${GITHUB_SHA}" \
             'Lean: 4.32.1' \
             'mathlib: v4.32.1' \
+            'Bayes dependency materialization: historical certified patch path' \
             'Kernel check: success' \
             'Leanchecker independent replay: success' \
             'Placeholders/custom axioms: none' \
