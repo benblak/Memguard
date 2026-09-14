@@ -1,0 +1,77 @@
+name: INSACERMO MetroPT Real-Data Belief Policy V1
+
+on:
+  push:
+    branches:
+      - insacermo-metropt-realdata-belief-policy-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install frozen analysis dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy==2.3.3' 'pandas==2.3.2' 'scikit-learn==1.7.2'
+          python - <<'PY'
+          import numpy, pandas, sklearn
+          print('numpy', numpy.__version__)
+          print('pandas', pandas.__version__)
+          print('sklearn', sklearn.__version__)
+          PY
+
+      - name: Verify preregistration exists before result
+        run: |
+          set -euo pipefail
+          test -s empirical/METROPT_BELIEF_POLICY_V1_PREREG.md
+          git log --format='%H %s' -- empirical/METROPT_BELIEF_POLICY_V1_PREREG.md | head -5
+
+      - name: Run full MetroPT-3 falsification-first audit
+        env:
+          INSACERMO_OUT: empirical/metropt_results_v1
+        run: |
+          set -euo pipefail
+          python empirical/metropt_belief_policy_audit_v1.py 2>&1 | tee empirical/metropt_results_v1_console.txt
+
+      - name: Print scientific verdict
+        run: |
+          set -euo pipefail
+          cat empirical/metropt_results_v1/METROPT_REALDATA_BELIEF_POLICY_V1_REPORT.md
+          echo '--- machine receipt ---'
+          cat empirical/metropt_results_v1/METROPT_BELIEF_POLICY_V1_RESULTS.json
+
+      - name: Hash audit package
+        run: |
+          set -euo pipefail
+          sha256sum \
+            empirical/METROPT_BELIEF_POLICY_V1_PREREG.md \
+            empirical/metropt_belief_policy_audit_v1.py \
+            empirical/metropt_results_v1/* \
+            empirical/metropt_results_v1_console.txt \
+            > empirical/METROPT_REALDATA_BELIEF_POLICY_V1_PACKAGE_SHA256SUMS.txt
+
+      - name: Upload full empirical evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSACERMO_METROPT_REALDATA_BELIEF_POLICY_V1
+          path: |
+            empirical/METROPT_BELIEF_POLICY_V1_PREREG.md
+            empirical/metropt_belief_policy_audit_v1.py
+            empirical/metropt_results_v1/
+            empirical/metropt_results_v1_console.txt
+            empirical/METROPT_REALDATA_BELIEF_POLICY_V1_PACKAGE_SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 90
