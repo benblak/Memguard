@@ -1,9 +1,20 @@
-CanonicalInteractionRepresentationKernelV1.lean:22:2: error: simp_all made no progress
-CanonicalInteractionRepresentationKernelV1.lean:31:6: error: Invalid rewrite argument: Expected an equality or iff proof or definition name, but `CanonicalCoeff ?P
-  ?S` is a value of type
-  ℤ
+CanonicalInteractionRepresentationKernelV1.lean:22:29: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidableEq Req
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+CanonicalInteractionRepresentationKernelV1.lean:22:56: error: Tactic `assumption` failed
+
+Req : Type u_1
+S T : Finset Req
+⊢ T ∈ S.ssubsets
+CanonicalInteractionRepresentationKernelV1.lean:21:0: error: unsolved goals
+Req : Type u_1
+S T : Finset Req
+⊢ #T < #S
+CanonicalInteractionRepresentationKernelV1.lean:30:2: error: 'change' tactic failed, pattern
+  P S - S.ssubsets.sum (CanonicalCoeff P) + S.ssubsets.sum (CanonicalCoeff P) = P S
+is not definitionally equal to target
+  CanonicalCoeff P S + S.ssubsets.sum (CanonicalCoeff P) = P S
 CanonicalInteractionRepresentationKernelV1.lean:42:2: warning: try 'simp' instead of 'simpa'
 
 Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
-CanonicalInteractionRepresentationKernelV1.lean:77:2: error: Invalid alternative name `h`: Expected `a._@._internal._hyg.0`
-CanonicalInteractionRepresentationKernelV1.lean:76:2: error: Alternative `a._@._internal._hyg.0` has not been provided
