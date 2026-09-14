@@ -1,0 +1,9 @@
+CanonicalInteractionRepresentationKernelV1.lean:22:2: error: simp_all made no progress
+CanonicalInteractionRepresentationKernelV1.lean:31:6: error: Invalid rewrite argument: Expected an equality or iff proof or definition name, but `CanonicalCoeff ?P
+  ?S` is a value of type
+  ℤ
+CanonicalInteractionRepresentationKernelV1.lean:42:2: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+CanonicalInteractionRepresentationKernelV1.lean:77:2: error: Invalid alternative name `h`: Expected `a._@._internal._hyg.0`
+CanonicalInteractionRepresentationKernelV1.lean:76:2: error: Alternative `a._@._internal._hyg.0` has not been provided
